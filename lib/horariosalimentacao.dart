@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-void main() {
-  runApp(horariosalimentacao());
+class horariosalimentacao extends StatefulWidget {
+  const horariosalimentacao({Key? key}) : super(key: key);
+
+  @override
+  _horariosalimentacao createState() => _horariosalimentacao();
 }
 
-class horariosalimentacao extends StatelessWidget {
+class _horariosalimentacao extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

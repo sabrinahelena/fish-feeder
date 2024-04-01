@@ -15,6 +15,27 @@ class menuprincipal extends StatefulWidget {
   _menuprincipalState createState() => _menuprincipalState();
 }
 
+class telainforma extends StatefulWidget{
+  const telainforma({Key? key}) : super(key: key);
+
+  @override
+  _telainformaState createState() => _telainformaState();
+}
+
+class telanivelcomida extends StatefulWidget {
+  const telanivelcomida({Key? key}) : super(key: key);
+
+  @override
+  _telaNivelComidaState createState() => _telaNivelComidaState();
+}
+
+class horariosalimentacao extends StatefulWidget {
+  const horariosalimentacao({Key? key}) : super(key: key);
+
+  @override
+  _horariosalimentacao createState() => _horariosalimentacaoState();
+}
+
 class _telaloginState extends State<telalogin> {
   // Definindo um estado para controlar a visibilidade da senha
   bool _isPasswordVisible = false;
@@ -124,7 +145,6 @@ class _telaloginState extends State<telalogin> {
               margin: EdgeInsets.symmetric(vertical: 5),
               child: ElevatedButton(
                 onPressed: () {
-                  //Navegar para a tela menuprincipal
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => menuprincipal()),
@@ -232,7 +252,10 @@ class _menuprincipalState extends State<menuprincipal> {
                     // Botão Nível de Comida
                     ElevatedButton(
                       onPressed: () {
-                        // Lógica para definir o nível de comida
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => telanivelcomida()),
+                        );
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
@@ -263,7 +286,10 @@ class _menuprincipalState extends State<menuprincipal> {
             right: 20,
             child: ElevatedButton(
               onPressed: () {
-                // Lógica para o botão de dúvida
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => telainforma()),
+                );
               },
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all(Color(0xFFB4D6E0)), // Cor de fundo igual à do AppBar
@@ -273,6 +299,225 @@ class _menuprincipalState extends State<menuprincipal> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _telainformaState extends State<telainforma>{
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Cuidados com o Peixe",
+          style: TextStyle(
+            color: Color(0xFF045E83),
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 25,
+            letterSpacing: 2.0,
+          ),
+        ),
+        backgroundColor: Color(0xFFB4D6E0),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Como Cuidar de um Peixe:',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              '1. Escolha um tanque adequado e mantenha a água limpa.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Escolha um aquário adequado para o tamanho e quantidade de peixes.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Posicione o aquário em um local estável, longe de correntes de ar e luz solar direta.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '2. Alimentação:',
+              style: TextStyle(height: 10),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Alimente os peixes com uma dieta equilibrada e específica para a espécie.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Alimente o peixe regularmente, mas não em excesso.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '3. Temperatura da água:',
+              style: TextStyle(height: 10),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Mantenha a temperatura da água dentro da faixa adequada para a espécie de peixe que você possui.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Use um termômetro para monitorar a temperatura regularmente.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '4. Limpeza da água:',
+              style: TextStyle(height: 10),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Realize trocas parciais de água regularmente para remover resíduos e substâncias indesejadas.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Limpe o filtro do aquário conforme as instruções do fabricante para garantir seu bom funcionamento.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '5. Observação:',
+              style: TextStyle(height: 10),
+            ),
+            Text(
+              '- Observe os peixes regularmente quanto a mudanças de comportamento, como falta de apetite, isolamento ou natação anormal.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            const Text(
+              '- Procure sinais visíveis de doenças, como manchas, feridas, parasitas ou mudanças na coloração.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Dicas Adicionais:',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              '- Evite mudanças bruscas no ambiente do tanque.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Introduza novos peixes com cuidado para evitar conflitos territoriais.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            Text(
+              '- Realize testes regulares de qualidade da água.',
+              style: TextStyle(fontSize: 16),
+              textAlign: TextAlign.justify,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _handleVoltarButtonPressed,
+              child: Text('Voltar'),
+            ),
+          ],
+        ),
+      ),
+    );
+}
+
+void _handleVoltarButtonPressed() {
+    // Implemente a ação desejada ao pressionar o botão
+  }
+}
+
+class _telaNivelComidaState extends State<telanivelcomida> {
+  @override
+  Widget build(BuildContext context) {
+    // Informações fictícias sobre o nível de comida
+    int nivelComidaAtual = 70; // Nível de comida atual (em porcentagem)
+    int capacidadeMaxima = 100; // Capacidade máxima do recipiente de comida
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Nível de Comida",
+          style: TextStyle(
+            color: Color(0xFF045E83),
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 25,
+            letterSpacing: 2.0,
+          ),
+        ),
+        backgroundColor: Color(0xFFB4D6E0),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              'Nível de Comida Atual:',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey[300],
+                  ),
+                ),
+                CircularProgressIndicator(
+                  value: nivelComidaAtual / capacidadeMaxima,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.blue, // Cor do indicador de progresso
+                  ),
+                  strokeWidth: 10,
+                ),
+                Text(
+                  '$nivelComidaAtual%', // Exibe a porcentagem do nível de comida atual
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Capacidade Máxima: $capacidadeMaxima%', // Exibe a capacidade máxima do recipiente de comida
+              style: TextStyle(
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
