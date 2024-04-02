@@ -29,13 +29,6 @@ class telanivelcomida extends StatefulWidget {
   _telaNivelComidaState createState() => _telaNivelComidaState();
 }
 
-class horariosalimentacao extends StatefulWidget {
-  const horariosalimentacao({Key? key}) : super(key: key);
-
-  @override
-  _horariosalimentacao createState() => _horariosalimentacaoState();
-}
-
 class _telaloginState extends State<telalogin> {
   // Definindo um estado para controlar a visibilidade da senha
   bool _isPasswordVisible = false;
@@ -441,7 +434,7 @@ class _telainformaState extends State<telainforma>{
         ),
       ),
     );
-}
+  }
 
 void _handleVoltarButtonPressed() {
     // Implemente a ação desejada ao pressionar o botão
