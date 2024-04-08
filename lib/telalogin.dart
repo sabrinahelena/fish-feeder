@@ -479,7 +479,13 @@ class _telaNivelComidaState extends State<telanivelcomida> {
         ),
         backgroundColor: Color(0xFFB4D6E0),
       ),
-      body: Center(
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("FundoInfo.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
