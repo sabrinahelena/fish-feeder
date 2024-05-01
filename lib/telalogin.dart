@@ -15,7 +15,7 @@ class menuprincipal extends StatefulWidget {
   _menuprincipalState createState() => _menuprincipalState();
 }
 
-class telainforma extends StatefulWidget{
+class telainforma extends StatefulWidget {
   const telainforma({Key? key}) : super(key: key);
 
   @override
@@ -27,13 +27,6 @@ class telanivelcomida extends StatefulWidget {
 
   @override
   _telaNivelComidaState createState() => _telaNivelComidaState();
-}
-
-class horariosalimentacao extends StatefulWidget {
-  const horariosalimentacao({Key? key}) : super(key: key);
-
-  @override
-  _horariosalimentacao createState() => _horariosalimentacao();
 }
 
 class _telaloginState extends State<telalogin> {
@@ -54,7 +47,8 @@ class _telaloginState extends State<telalogin> {
             letterSpacing: 2.0, // Espaçamento entre as letras
           ),
         ),
-        backgroundColor: Color(0xFFB4D6E0), // Usando a cor personalizada para a AppBar
+        backgroundColor:
+            Color(0xFFB4D6E0), // Usando a cor personalizada para a AppBar
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -65,8 +59,10 @@ class _telaloginState extends State<telalogin> {
         ),
         padding: EdgeInsets.all(20.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Alinha os itens ao centro verticalmente
-          crossAxisAlignment: CrossAxisAlignment.center, // Alinha os itens ao centro horizontalmente
+          mainAxisAlignment: MainAxisAlignment
+              .center, // Alinha os itens ao centro verticalmente
+          crossAxisAlignment: CrossAxisAlignment
+              .center, // Alinha os itens ao centro horizontalmente
           children: [
             SizedBox(height: 200), // Espaçamento superior de 200px
             // Campo de texto para o email
@@ -94,7 +90,8 @@ class _telaloginState extends State<telalogin> {
                       color: Color(0xFF045E83), // Cor da borda
                       width: 1.0, // Espessura da borda
                     ),
-                    borderRadius: BorderRadius.circular(20), // Borda arredondada
+                    borderRadius:
+                        BorderRadius.circular(20), // Borda arredondada
                   ),
                 ),
               ),
@@ -124,7 +121,8 @@ class _telaloginState extends State<telalogin> {
                       color: Color(0xFF045E83), // Cor da borda
                       width: 1.0, // Espessura da borda
                     ),
-                    borderRadius: BorderRadius.circular(20), // Borda arredondada
+                    borderRadius:
+                        BorderRadius.circular(20), // Borda arredondada
                   ),
                   suffixIcon: IconButton(
                     onPressed: () {
@@ -134,10 +132,13 @@ class _telaloginState extends State<telalogin> {
                       });
                     },
                     // Alterando o ícone com base no estado da visibilidade da senha
-                    icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(_isPasswordVisible
+                        ? Icons.visibility
+                        : Icons.visibility_off),
                   ),
                 ),
-                obscureText: !_isPasswordVisible, // Oculta a senha se _isPasswordVisible for false
+                obscureText:
+                    !_isPasswordVisible, // Oculta a senha se _isPasswordVisible for false
               ),
             ),
             // Botão de login
@@ -181,23 +182,29 @@ class _menuprincipalState extends State<menuprincipal> {
             letterSpacing: 2.0, // Espaçamento entre as letras
           ),
         ),
-        backgroundColor: Color(0xFFB4D6E0), // Usando a cor personalizada para a AppBar
+        backgroundColor:
+            Color(0xFFB4D6E0), // Usando a cor personalizada para a AppBar
       ),
       body: Stack(
         children: [
           Container(
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage("assets/Fundoaquario.jpg"), // Fundo da imagem do aquário
+                image: AssetImage(
+                    "assets/Fundoaquario.jpg"), // Fundo da imagem do aquário
                 fit: BoxFit.cover,
               ),
             ),
             padding: EdgeInsets.all(20.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Centraliza os elementos na vertical
-              crossAxisAlignment: CrossAxisAlignment.center, // Centraliza os elementos na horizontal
+              mainAxisAlignment: MainAxisAlignment
+                  .center, // Centraliza os elementos na vertical
+              crossAxisAlignment: CrossAxisAlignment
+                  .center, // Centraliza os elementos na horizontal
               children: [
-                SizedBox(height: 100), // Espaçamento superior de 100px para o relógio
+                SizedBox(
+                    height:
+                        100), // Espaçamento superior de 100px para o relógio
                 // Relógio centralizado na tela
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -212,28 +219,30 @@ class _menuprincipalState extends State<menuprincipal> {
                     ), // Horário atual (substitua por sua lógica real de tempo)
                   ],
                 ),
-                SizedBox(height: 200), // Espaçamento entre o relógio e os botões
+                SizedBox(
+                    height: 200), // Espaçamento entre o relógio e os botões
                 // Coluna para os botões
                 Column(
-                  mainAxisAlignment: MainAxisAlignment.center, // Centraliza os elementos na vertical
+                  mainAxisAlignment: MainAxisAlignment
+                      .center, // Centraliza os elementos na vertical
                   children: [
                     // Botão Programar Horário
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => horariosalimentacao()),
-                        );
+                        // Lógica para programar o horário
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
-                        foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
+                        backgroundColor: MaterialStateProperty.all(
+                            Color(0xFFE1EC2B)), // Cor de fundo
+                        foregroundColor: MaterialStateProperty.all(
+                            Color(0xFFFA803F)), // Cor do texto
                         side: MaterialStateProperty.all(BorderSide(
                           color: Color(0xFFE1EC2B), // Cor da borda
                           width: 1, // Largura da borda
                         )),
                       ),
-                      child: Text('Programar Horário', style: TextStyle(fontSize: 15)),
+                      child: Text('Programar Horário',
+                          style: TextStyle(fontSize: 15)),
                     ),
                     SizedBox(height: 10), // Espaçamento entre os botões
                     // Botão Alimentar Agora
@@ -242,14 +251,17 @@ class _menuprincipalState extends State<menuprincipal> {
                         // Lógica para alimentar agora
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
-                        foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
+                        backgroundColor: MaterialStateProperty.all(
+                            Color(0xFFE1EC2B)), // Cor de fundo
+                        foregroundColor: MaterialStateProperty.all(
+                            Color(0xFFFA803F)), // Cor do texto
                         side: MaterialStateProperty.all(BorderSide(
                           color: Color(0xFFE1EC2B), // Cor da borda
                           width: 1, // Largura da borda
                         )),
                       ),
-                      child: Text('Alimentar Agora', style: TextStyle(fontSize: 15)),
+                      child: Text('Alimentar Agora',
+                          style: TextStyle(fontSize: 15)),
                     ),
                     SizedBox(height: 10), // Espaçamento entre os botões
                     // Botão Nível de Comida
@@ -257,22 +269,28 @@ class _menuprincipalState extends State<menuprincipal> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => telanivelcomida()),
+                          MaterialPageRoute(
+                              builder: (context) => telanivelcomida()),
                         );
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
-                        foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
+                        backgroundColor: MaterialStateProperty.all(
+                            Color(0xFFE1EC2B)), // Cor de fundo
+                        foregroundColor: MaterialStateProperty.all(
+                            Color(0xFFFA803F)), // Cor do texto
                         side: MaterialStateProperty.all(BorderSide(
                           color: Color(0xFFE1EC2B), // Cor da borda
                           width: 1, // Largura da borda
                         )),
                       ),
-                      child: Text('Nível de Comida', style: TextStyle(fontSize: 15)),
+                      child: Text('Nível de Comida',
+                          style: TextStyle(fontSize: 15)),
                     ),
                   ],
                 ),
-                SizedBox(height: 200), // Espaçamento inferior de 200px para a última alimentação
+                SizedBox(
+                    height:
+                        200), // Espaçamento inferior de 200px para a última alimentação
                 // Texto "Última Alimentação"
                 Text(
                   'Última Alimentação: $ultimaAlimentacao', // Mostra o horário da última alimentação
@@ -295,10 +313,13 @@ class _menuprincipalState extends State<menuprincipal> {
                 );
               },
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(Color(0xFFB4D6E0)), // Cor de fundo igual à do AppBar
-                shape: MaterialStateProperty.all(CircleBorder()), // Formato de círculo
+                backgroundColor: MaterialStateProperty.all(
+                    Color(0xFFB4D6E0)), // Cor de fundo igual à do AppBar
+                shape: MaterialStateProperty.all(
+                    CircleBorder()), // Formato de círculo
               ),
-              child: Icon(Icons.help_outline, color: Colors.white, size: 40), // Ícone de dúvida
+              child: Icon(Icons.help_outline,
+                  color: Colors.white, size: 40), // Ícone de dúvida
             ),
           ),
         ],
@@ -307,7 +328,7 @@ class _menuprincipalState extends State<menuprincipal> {
   }
 }
 
-class _telainformaState extends State<telainforma>{
+class _telainformaState extends State<telainforma> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -315,20 +336,21 @@ class _telainformaState extends State<telainforma>{
         title: const Text(
           "Cuidados com o Peixe",
           style: TextStyle(
-            color: Color(0xFF045E83), // Cor do texto como #045E83
-            fontFamily: 'Inter', // Usando a fonte Inter
-            fontWeight: FontWeight.w600, // Peso da fonte 600
-            fontSize: 25, // Tamanho da fonte 25
-            letterSpacing: 2.0, // Espaçamento entre as letras
+            color: Colors.black,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 25,
+            letterSpacing: 2.0,
           ),
         ),
-        backgroundColor: Color(0xFFB4D6E0), // Usando a cor personalizada para a AppBar
+        backgroundColor:
+            Colors.transparent, // Tornando a barra de aplicativos transparente
         elevation: 0, // Removendo a sombra da barra de aplicativos
       ),
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("FundoInfo.jpg"),
+            image: AssetImage("assets/FundoInfo.jpg"),
             fit: BoxFit.cover,
           ),
         ),
@@ -456,6 +478,10 @@ class _telainformaState extends State<telainforma>{
       ),
     );
   }
+
+  void _handleVoltarButtonPressed() {
+    // Implemente a ação desejada ao pressionar o botão
+  }
 }
 
 class _telaNivelComidaState extends State<telanivelcomida> {
@@ -479,13 +505,7 @@ class _telaNivelComidaState extends State<telanivelcomida> {
         ),
         backgroundColor: Color(0xFFB4D6E0),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("FundoInfo.jpg"),
-            fit: BoxFit.cover,
-          ),
-        ),
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -536,172 +556,5 @@ class _telaNivelComidaState extends State<telanivelcomida> {
         ),
       ),
     );
-  }
-}
-
-class _horariosalimentacao extends State<horariosalimentacao> {
-  List<TextEditingController> timeControllers = [];
-  List<TextEditingController> nameControllers = [];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Horarios de alimentação',
-          style: TextStyle(
-              fontSize:25,
-              fontWeight:FontWeight.w600,
-              color:Color(0xFF045E83),
-              letterSpacing:2.0
-          ),
-        ),
-        backgroundColor:Color(0xFFB4D6E0),
-
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('water.jpeg'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Insira os horários para o peixe',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 20),
-              for (var i = 0; i < timeControllers.length; i++)
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 5),
-                  padding: EdgeInsets.all(8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 120,
-                        child: TextField(
-                          controller: nameControllers[i],
-                          keyboardType: TextInputType.text,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.black.withOpacity(0.5),
-                            hintText: 'Nome',
-                            hintStyle: TextStyle(color: Colors.white),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'Horário ${i + 1}: ',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      SizedBox(
-                        width: 100,
-                        child: TextField(
-                          controller: timeControllers[i],
-                          keyboardType: TextInputType.datetime,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(8), // Limita o número máximo de caracteres
-                            FilteringTextInputFormatter.digitsOnly, // Permite apenas dígitos
-                            _HoraInputFormatter(), // Formata automaticamente para o formato HH:MM:SS
-                          ],
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.black.withOpacity(0.5),
-                            hintText: 'HH:MM:SS',
-                            hintStyle: TextStyle(color: Colors.white),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              if (timeControllers.length < 6)
-                ElevatedButton(
-                  onPressed: () {
-                    _adicionarHorario();
-                  },
-                  child: Text(
-                    'Adicionar Horário',
-                    style: TextStyle(color: Colors.blue), // Cor azul para o texto do botão
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _adicionarHorario() {
-    setState(() {
-      nameControllers.add(TextEditingController());
-      timeControllers.add(TextEditingController());
-    });
-  }
-
-  @override
-  void dispose() {
-    for (var controller in nameControllers) {
-      controller.dispose();
-    }
-    for (var controller in timeControllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-}
-
-class _HoraInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = _formatText(newValue.text);
-    return newValue.copyWith(text: text, selection: TextSelection.collapsed(offset: text.length));
-  }
-
-  String _formatText(String text) {
-    final RegExp regex = RegExp(r'^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$');
-    String formattedText = '';
-    for (int i = 0; i < text.length; i++) {
-      if (!regex.hasMatch(formattedText) && text[i] != ':') {
-        formattedText += text[i];
-        if (formattedText.length == 2 || formattedText.length == 5) {
-          formattedText += ':';
-        }
-      }
-    }
-    return formattedText;
   }
 }
