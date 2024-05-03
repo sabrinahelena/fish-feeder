@@ -8,6 +8,13 @@ class telalogin extends StatefulWidget {
   _telaloginState createState() => _telaloginState();
 }
 
+class criaruser extends StatefulWidget {
+  const criaruser({Key? key}) : super(key: key);
+
+  @override
+  _criaruserState createState() => _criaruserState();
+}
+
 class menuprincipal extends StatefulWidget {
   const menuprincipal({Key? key}) : super(key: key);
 
@@ -34,6 +41,13 @@ class horariosalimentacao extends StatefulWidget {
 
   @override
   _horariosalimentacao createState() => _horariosalimentacao();
+}
+
+class telaperfil extends StatefulWidget {
+  const telaperfil({Key? key}) : super(key: key);
+
+  @override
+  _telaperfil createState() => _telaperfil();
 }
 
 class _telaloginState extends State<telalogin> {
@@ -153,7 +167,372 @@ class _telaloginState extends State<telalogin> {
                 child: Text('Login'),
               ),
             ),
+            SizedBox(height: 10),
+            // Texto "Sou novo, realizar cadastro" clicável
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => criaruser()),
+                );
+              },
+              child: Text(
+                'Sou novo, realizar cadastro',
+                style: TextStyle(
+                  color: Colors.lightBlueAccent, // Cor do texto
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  decoration: TextDecoration.underline, // Sublinhado
+                ),
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _criaruserState extends State<criaruser> {
+  @override
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Fish Feeder - Cadastro",
+          style: TextStyle(
+            color: Color(0xFF045E83), // Cor do texto como #045E83
+            fontFamily: 'Inter', // Usando a fonte Inter
+            fontWeight: FontWeight.w600, // Peso da fonte 600
+            fontSize: 25, // Tamanho da fonte 25
+            letterSpacing: 2.0, // Espaçamento entre as letras
+          ),
+        ),
+        backgroundColor: Color(0xFFB4D6E0), // Usando a cor personalizada para a AppBar
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/PeixeComendoHamburguer6.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SizedBox(height: 50),
+            // Campo de texto para o nome
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
+              child: TextField(
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF045E83), // Cor do texto
+                ),
+                decoration: InputDecoration(
+                  labelText: 'Nome',
+                  labelStyle: TextStyle(
+                    color: Color(0xFF045E83), // Cor do labelText
+                    fontFamily: 'Inter',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFFB4D6E0),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Color(0xFF045E83),
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
+            // Campo de texto para o email
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
+              child: TextField(
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF045E83), // Cor do texto
+                ),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(
+                    color: Color(0xFF045E83), // Cor do labelText
+                    fontFamily: 'Inter',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFFB4D6E0),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Color(0xFF045E83),
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+              ),
+            ),
+            // Campo de texto para a senha
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
+              child: TextField(
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF045E83), // Cor do texto
+                ),
+                decoration: InputDecoration(
+                  labelText: 'Senha',
+                  labelStyle: TextStyle(
+                    color: Color(0xFF045E83), // Cor do labelText
+                    fontFamily: 'Inter',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFFB4D6E0),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Color(0xFF045E83),
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                    icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                  ),
+                ),
+                obscureText: !_isPasswordVisible,
+              ),
+            ),
+            // Campo de texto para a confirmação de senha
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
+              child: TextField(
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w400,
+                  color: Color(0xFF045E83), // Cor do texto
+                ),
+                decoration: InputDecoration(
+                  labelText: 'Confirmar Senha',
+                  labelStyle: TextStyle(
+                    color: Color(0xFF045E83), // Cor do labelText
+                    fontFamily: 'Inter',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  filled: true,
+                  fillColor: Color(0xFFB4D6E0),
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Color(0xFF045E83),
+                      width: 1.0,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                      });
+                    },
+                    icon: Icon(_isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                  ),
+                ),
+                obscureText: !_isConfirmPasswordVisible,
+              ),
+            ),
+            // Botão de finalizar cadastro
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 5),
+              child: ElevatedButton(
+                onPressed: () {
+                  // Lógica para finalizar o cadastro
+                },
+                child: Text('Finalizar Cadastro'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _telaperfil extends State<telaperfil> {
+// Variáveis para armazenar os dados do usuário
+  String nome = 'Nome do Usuário';
+  String email = 'usuario@example.com';
+  String senha = 'senha123';
+  bool _isPasswordVisible = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Perfil do Usuário',
+          style: TextStyle(
+            color: Color(0xFF045E83),
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 25,
+            letterSpacing: 2.0,
+          ),
+        ),
+        backgroundColor: Color(0xFFB4D6E0),
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/FundoInfo.jpg"), // Caminho da imagem de fundo
+            fit: BoxFit.cover, // Ajuste para cobrir toda a área do container
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(20.0),
+          child: Container(
+            height: MediaQuery.of(context).size.height, // Altura igual à altura da tela
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Nome:',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Container(
+                  margin: EdgeInsets.symmetric(vertical: 5),
+                  child: TextFormField(
+                    initialValue: nome,
+                    onChanged: (value) {
+                      setState(() {
+                        nome = value;
+                      });
+                    },
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF045E83), // Cor do texto
+                    ),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      filled: true, // Preenchimento ativado
+                      fillColor: Color(0xFFB4D6E0), // Cor de fundo 0xFFB4D6E0
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'E-mail:',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Container(
+                  margin: EdgeInsets.symmetric(vertical: 5),
+                  child: TextFormField(
+                    initialValue: email,
+                    onChanged: (value) {
+                      setState(() {
+                        email = value;
+                      });
+                    },
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF045E83), // Cor do texto
+                    ),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      filled: true, // Preenchimento ativado
+                      fillColor: Color(0xFFB4D6E0), // Cor de fundo 0xFFB4D6E0
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Senha:',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Container(
+                  margin: EdgeInsets.symmetric(vertical: 5),
+                  child: TextFormField(
+                    initialValue: senha,
+                    onChanged: (value) {
+                      setState(() {
+                        senha = value;
+                      });
+                    },
+                    obscureText: !_isPasswordVisible,
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                      color: Color(0xFF045E83), // Cor do texto
+                    ),
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      filled: true, // Preenchimento ativado
+                      fillColor: Color(0xFFB4D6E0), // Cor de fundo 0xFFB4D6E0
+                      suffixIcon: IconButton(
+                        icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    // Lógica para salvar os dados do usuário
+                    // Você pode implementar a lógica de salvar os dados aqui
+                    // Por exemplo, você pode chamar uma função para enviar os dados para um servidor
+                    // Ou pode salvar localmente usando SharedPreferences, por exemplo
+                  },
+                  child: Text('Salvar'),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -182,6 +561,18 @@ class _menuprincipalState extends State<menuprincipal> {
           ),
         ),
         backgroundColor: Color(0xFFB4D6E0), // Usando a cor personalizada para a AppBar
+        actions: [
+          // Ícone de perfil
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => telaperfil()),
+              );
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
