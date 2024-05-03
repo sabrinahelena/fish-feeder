@@ -193,100 +193,102 @@ class _menuprincipalState extends State<menuprincipal> {
               ),
             ),
             padding: EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center, // Centraliza os elementos na vertical
-              crossAxisAlignment: CrossAxisAlignment.center, // Centraliza os elementos na horizontal
-              children: [
-                SizedBox(height: 100), // Espaçamento superior de 100px para o relógio
-                // Relógio centralizado na tela
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.access_time),
-                    Text(
-                      ' $horarioAtual',
-                      style: TextStyle(
-                        fontSize: 40, // Tamanho da fonte do relógio
-                        fontWeight: FontWeight.bold, // Texto em negrito
-                      ),
-                    ), // Horário atual (substitua por sua lógica real de tempo)
-                  ],
-                ),
-                SizedBox(height: 200), // Espaçamento entre o relógio e os botões
-                // Coluna para os botões
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center, // Centraliza os elementos na vertical
-                  children: [
-                    // Botão Programar Horário
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => horariosalimentacao()),
-                        );
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
-                        foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
-                        side: MaterialStateProperty.all(BorderSide(
-                          color: Color(0xFFE1EC2B), // Cor da borda
-                          width: 1, // Largura da borda
-                        )),
-                      ),
-                      child: Text('Programar Horário', style: TextStyle(fontSize: 15)),
-                    ),
-                    SizedBox(height: 10), // Espaçamento entre os botões
-                    // Botão Alimentar Agora
-                    ElevatedButton(
-                      onPressed: () {
-                        // Lógica para alimentar agora
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
-                        foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
-                        side: MaterialStateProperty.all(BorderSide(
-                          color: Color(0xFFE1EC2B), // Cor da borda
-                          width: 1, // Largura da borda
-                        )),
-                      ),
-                      child: Text('Alimentar Agora', style: TextStyle(fontSize: 15)),
-                    ),
-                    SizedBox(height: 10), // Espaçamento entre os botões
-                    // Botão Nível de Comida
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => telanivelcomida()),
-                        );
-                      },
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
-                        foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
-                        side: MaterialStateProperty.all(BorderSide(
-                          color: Color(0xFFE1EC2B), // Cor da borda
-                          width: 1, // Largura da borda
-                        )),
-                      ),
-                      child: Text('Nível de Comida', style: TextStyle(fontSize: 15)),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 200), // Espaçamento inferior de 200px para a última alimentação
-                // Texto "Última Alimentação"
-                Text(
-                  'Última Alimentação: $ultimaAlimentacao', // Mostra o horário da última alimentação
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20, // Tamanho da fonte para a última alimentação
+            child: SingleChildScrollView( // Adicionando SingleChildScrollView para possibilitar a rolagem
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center, // Centraliza os elementos na vertical
+                crossAxisAlignment: CrossAxisAlignment.center, // Centraliza os elementos na horizontal
+                children: [
+                  SizedBox(height: 10), // Espaçamento superior de 100px para o relógio
+                  // Relógio centralizado na tela
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.access_time),
+                      Text(
+                        ' $horarioAtual',
+                        style: TextStyle(
+                          fontSize: 40, // Tamanho da fonte do relógio
+                          fontWeight: FontWeight.bold, // Texto em negrito
+                        ),
+                      ), // Horário atual (substitua por sua lógica real de tempo)
+                    ],
                   ),
-                ),
-              ],
+                  SizedBox(height: 150), // Espaçamento entre o relógio e os botões
+                  // Coluna para os botões
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center, // Centraliza os elementos na vertical
+                    children: [
+                      // Botão Programar Horário
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => horariosalimentacao()),
+                          );
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
+                          foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
+                          side: MaterialStateProperty.all(BorderSide(
+                            color: Color(0xFFE1EC2B), // Cor da borda
+                            width: 1, // Largura da borda
+                          )),
+                        ),
+                        child: Text('Programar Horário', style: TextStyle(fontSize: 15)),
+                      ),
+                      SizedBox(height: 10), // Espaçamento entre os botões
+                      // Botão Alimentar Agora
+                      ElevatedButton(
+                        onPressed: () {
+                          // Lógica para alimentar agora
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
+                          foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
+                          side: MaterialStateProperty.all(BorderSide(
+                            color: Color(0xFFE1EC2B), // Cor da borda
+                            width: 1, // Largura da borda
+                          )),
+                        ),
+                        child: Text('Alimentar Agora', style: TextStyle(fontSize: 15)),
+                      ),
+                      SizedBox(height: 10), // Espaçamento entre os botões
+                      // Botão Nível de Comida
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => telanivelcomida()),
+                          );
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
+                          foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
+                          side: MaterialStateProperty.all(BorderSide(
+                            color: Color(0xFFE1EC2B), // Cor da borda
+                            width: 1, // Largura da borda
+                          )),
+                        ),
+                        child: Text('Nível de Comida', style: TextStyle(fontSize: 15)),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 260), // Espaçamento inferior de 200px para a última alimentação
+                  // Texto "Última Alimentação"
+                  Text(
+                    'Última Alimentação: $ultimaAlimentacao', // Mostra o horário da última alimentação
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20, // Tamanho da fonte para a última alimentação
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           Positioned(
-            bottom: 20,
-            right: 20,
+            bottom: 5,
+            right: 5,
             child: ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -328,7 +330,7 @@ class _telainformaState extends State<telainforma>{
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("FundoInfo.jpg"),
+            image: AssetImage("assets/FundoInfo.jpg"),
             fit: BoxFit.cover,
           ),
         ),
@@ -482,54 +484,65 @@ class _telaNivelComidaState extends State<telanivelcomida> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("FundoInfo.jpg"),
+            image: AssetImage("assets/FundoInfo.jpg"),
             fit: BoxFit.cover,
           ),
         ),
-        child: Column(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              'Nível de Comida Atual:',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10),
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey[300],
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    'Nível de Comida Atual:',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white, // Altera a cor do texto para branco
+                    ),
                   ),
-                ),
-                CircularProgressIndicator(
-                  value: nivelComidaAtual / capacidadeMaxima,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.blue, // Cor do indicador de progresso
+                  SizedBox(height: 10),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey[300],
+                        ),
+                      ),
+                      CircularProgressIndicator(
+                        value: nivelComidaAtual / capacidadeMaxima,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.blue, // Cor do indicador de progresso
+                        ),
+                        strokeWidth: 10,
+                      ),
+                      Text(
+                        '$nivelComidaAtual%', // Exibe a porcentagem do nível de comida atual
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
                   ),
-                  strokeWidth: 10,
-                ),
-                Text(
-                  '$nivelComidaAtual%', // Exibe a porcentagem do nível de comida atual
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                  SizedBox(height: 20),
+                  Text(
+                    'Capacidade Máxima: $capacidadeMaxima%', // Exibe a capacidade máxima do recipiente de comida
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white, // Altera a cor do texto para branco
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            Text(
-              'Capacidade Máxima: $capacidadeMaxima%', // Exibe a capacidade máxima do recipiente de comida
-              style: TextStyle(
-                fontSize: 18,
+                ],
               ),
             ),
           ],
@@ -561,7 +574,7 @@ class _horariosalimentacao extends State<horariosalimentacao> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('water.jpeg'),
+            image: AssetImage('assets/water.jpeg'),
             fit: BoxFit.cover,
           ),
         ),
