@@ -53,6 +53,7 @@ class telaperfil extends StatefulWidget {
 class _telaloginState extends State<telalogin> {
   // Definindo um estado para controlar a visibilidade da senha
   bool _isPasswordVisible = false;
+  bool _rememberMe = false; // Estado para controlar o estado do checkbox
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +154,29 @@ class _telaloginState extends State<telalogin> {
                 ),
                 obscureText: !_isPasswordVisible, // Oculta a senha se _isPasswordVisible for false
               ),
+            ),
+            // Checkbox "Lembre de mim"
+            Row(
+              children: [
+                Checkbox(
+                  value: _rememberMe,
+                  onChanged: (value) {
+                    setState(() {
+                      _rememberMe = value!;
+                    });
+                  },
+                  activeColor: Color(0xFFEFAA4F), // Alterando a cor do checkbox selecionado
+                ),
+                Text(
+                  'Lembre de mim',
+                  style: TextStyle(
+                    color: Colors.white, // Alterando a cor do texto para branco
+                    fontFamily: 'Inter',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
             // Botão de login
             Container(
