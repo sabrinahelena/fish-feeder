@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class telalogin extends StatefulWidget {
   const telalogin({Key? key}) : super(key: key);
@@ -55,6 +57,51 @@ class _telaloginState extends State<telalogin> {
   bool _isPasswordVisible = false;
   bool _rememberMe = false; // Estado para controlar o estado do checkbox
 
+  // Definindo uma string para armazenar a senha e o e-mail
+  String _emailSalvo = "";
+  String _senhaSalva = "";
+
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _senhaController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _recuperarDados(); // Recuperando os dados salvos quando a tela é inicializada
+  }
+
+  _salvarDados() async {
+    String emailDigitado = _emailController.text;
+    String senhaDigitada = _senhaController.text;
+
+    final prefs = await SharedPreferences.getInstance();
+    if (_rememberMe) {
+      await prefs.setString("email", emailDigitado); // Salvar o email se "Lembre de mim" estiver marcado
+      await prefs.setString("senha", senhaDigitada); // Salvar a senha se "Lembre de mim" estiver marcado
+    } else {
+      await prefs.remove("email"); // Remover o email se "Lembre de mim" não estiver marcado
+      await prefs.remove("senha"); // Remover a senha se "Lembre de mim" não estiver marcado
+      _emailController.clear(); // Limpar o campo de email
+      _senhaController.clear(); // Limpar o campo de senha
+    }
+
+    print("Email salvo: $emailDigitado");
+    print("Senha salva: $senhaDigitada");
+  }
+
+  _recuperarDados() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _emailSalvo = prefs.getString("email") ?? ""; // Recuperar o email salvo, se existir
+      _senhaSalva = prefs.getString("senha") ?? ""; // Recuperar a senha salva, se existir
+      _emailController.text = _emailSalvo; // Preencher o campo de email com o email salvo
+      _senhaController.text = _senhaSalva; // Preencher o campo de senha com a senha salva
+      _rememberMe = _emailSalvo.isNotEmpty && _senhaSalva.isNotEmpty; // Definir o estado do checkbox com base nos dados recuperados
+    });
+    print("Email recuperado: $_emailSalvo");
+    print("Senha recuperada: $_senhaSalva");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,6 +135,7 @@ class _telaloginState extends State<telalogin> {
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: TextField(
+                controller: _emailController,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 15,
@@ -118,6 +166,7 @@ class _telaloginState extends State<telalogin> {
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: TextField(
+                controller: _senhaController,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 15,
@@ -163,6 +212,7 @@ class _telaloginState extends State<telalogin> {
                   onChanged: (value) {
                     setState(() {
                       _rememberMe = value!;
+                      _salvarDados(); // Salvando ou removendo os dados com base no estado do checkbox
                     });
                   },
                   activeColor: Color(0xFFEFAA4F), // Alterando a cor do checkbox selecionado
@@ -183,6 +233,7 @@ class _telaloginState extends State<telalogin> {
               margin: EdgeInsets.symmetric(vertical: 5),
               child: ElevatedButton(
                 onPressed: () {
+                  _salvarDados(); // Salvando os dados antes de ir para a próxima tela
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => menuprincipal()),
