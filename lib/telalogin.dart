@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 
 class telalogin extends StatefulWidget {
   const telalogin({Key? key}) : super(key: key);
@@ -53,11 +55,8 @@ class telaperfil extends StatefulWidget {
 }
 
 class _telaloginState extends State<telalogin> {
-  // Definindo um estado para controlar a visibilidade da senha
   bool _isPasswordVisible = false;
-  bool _rememberMe = false; // Estado para controlar o estado do checkbox
-
-  // Definindo uma string para armazenar a senha e o e-mail
+  bool _rememberMe = false;
   String _emailSalvo = "";
   String _senhaSalva = "";
 
@@ -67,39 +66,90 @@ class _telaloginState extends State<telalogin> {
   @override
   void initState() {
     super.initState();
-    _recuperarDados(); // Recuperando os dados salvos quando a tela é inicializada
+    _recuperarDados();
   }
 
-  _salvarDados() async {
+  Future<void> _verificarCredenciais(BuildContext context) async {
+    final String email = _emailController.text;
+    final String senha = _senhaController.text;
+
+    final Database db = await _abrirBancoDeDados();
+
+    final List<Map<String, dynamic>> result = await db.query(
+      'pessoa',
+      where: 'email = ? AND senha = ?',
+      whereArgs: [email, senha],
+    );
+
+    if (result.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => menuprincipal()),
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Erro'),
+            content: Text('Credenciais incorretas. Por favor, tente novamente.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Future<void> _salvarDados() async {
     String emailDigitado = _emailController.text;
     String senhaDigitada = _senhaController.text;
 
     final prefs = await SharedPreferences.getInstance();
     if (_rememberMe) {
-      await prefs.setString("email", emailDigitado); // Salvar o email se "Lembre de mim" estiver marcado
-      await prefs.setString("senha", senhaDigitada); // Salvar a senha se "Lembre de mim" estiver marcado
+      await prefs.setString("email", emailDigitado);
+      await prefs.setString("senha", senhaDigitada);
     } else {
-      await prefs.remove("email"); // Remover o email se "Lembre de mim" não estiver marcado
-      await prefs.remove("senha"); // Remover a senha se "Lembre de mim" não estiver marcado
-      _emailController.clear(); // Limpar o campo de email
-      _senhaController.clear(); // Limpar o campo de senha
+      await prefs.remove("email");
+      await prefs.remove("senha");
+      _emailController.clear();
+      _senhaController.clear();
     }
 
     print("Email salvo: $emailDigitado");
     print("Senha salva: $senhaDigitada");
   }
 
-  _recuperarDados() async {
+  Future<void> _recuperarDados() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _emailSalvo = prefs.getString("email") ?? ""; // Recuperar o email salvo, se existir
-      _senhaSalva = prefs.getString("senha") ?? ""; // Recuperar a senha salva, se existir
-      _emailController.text = _emailSalvo; // Preencher o campo de email com o email salvo
-      _senhaController.text = _senhaSalva; // Preencher o campo de senha com a senha salva
-      _rememberMe = _emailSalvo.isNotEmpty && _senhaSalva.isNotEmpty; // Definir o estado do checkbox com base nos dados recuperados
+      _emailSalvo = prefs.getString("email") ?? "";
+      _senhaSalva = prefs.getString("senha") ?? "";
+      _emailController.text = _emailSalvo;
+      _senhaController.text = _senhaSalva;
+      _rememberMe = _emailSalvo.isNotEmpty && _senhaSalva.isNotEmpty;
     });
     print("Email recuperado: $_emailSalvo");
     print("Senha recuperada: $_senhaSalva");
+  }
+
+  Future<Database> _abrirBancoDeDados() async {
+    final String path = join(await getDatabasesPath(), 'banco_dados.db');
+    return openDatabase(
+      path,
+      onCreate: (db, version) {
+        return db.execute(
+          "CREATE TABLE pessoa(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, senha TEXT)",
+        );
+      },
+      version: 1,
+    );
   }
 
   @override
@@ -109,14 +159,14 @@ class _telaloginState extends State<telalogin> {
         title: const Text(
           "Fish Feeder - Login",
           style: TextStyle(
-            color: Color(0xFF045E83), // Cor do texto como #045E83
-            fontFamily: 'Inter', // Usando a fonte Inter
-            fontWeight: FontWeight.w600, // Peso da fonte 600
-            fontSize: 25, // Tamanho da fonte 25
-            letterSpacing: 2.0, // Espaçamento entre as letras
+            color: Color(0xFF045E83),
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: 25,
+            letterSpacing: 2.0,
           ),
         ),
-        backgroundColor: Color(0xFFB4D6E0), // Usando a cor personalizada para a AppBar
+        backgroundColor: Color(0xFFB4D6E0),
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -127,11 +177,10 @@ class _telaloginState extends State<telalogin> {
         ),
         padding: EdgeInsets.all(20.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Alinha os itens ao centro verticalmente
-          crossAxisAlignment: CrossAxisAlignment.center, // Alinha os itens ao centro horizontalmente
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 200), // Espaçamento superior de 200px
-            // Campo de texto para o email
+            SizedBox(height: 200),
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: TextField(
@@ -140,29 +189,28 @@ class _telaloginState extends State<telalogin> {
                   fontFamily: 'Inter',
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: Color(0xFF045E83), // Cor do texto
+                  color: Color(0xFF045E83),
                 ),
                 decoration: InputDecoration(
                   labelText: 'Email',
                   labelStyle: TextStyle(
-                    color: Color(0xFF045E83), // Cor do labelText
+                    color: Color(0xFF045E83),
                     fontFamily: 'Inter',
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
-                  filled: true, // Preenchimento ativado
-                  fillColor: Color(0xFFB4D6E0), // Cor de fundo 0xFFB4D6E0
+                  filled: true,
+                  fillColor: Color(0xFFB4D6E0),
                   border: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Color(0xFF045E83), // Cor da borda
-                      width: 1.0, // Espessura da borda
+                      color: Color(0xFF045E83),
+                      width: 1.0,
                     ),
-                    borderRadius: BorderRadius.circular(20), // Borda arredondada
+                    borderRadius: BorderRadius.circular(20),
                   ),
                 ),
               ),
             ),
-            // Campo de texto para a senha
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: TextField(
@@ -171,40 +219,37 @@ class _telaloginState extends State<telalogin> {
                   fontFamily: 'Inter',
                   fontSize: 15,
                   fontWeight: FontWeight.w400,
-                  color: Color(0xFF045E83), // Cor do texto
+                  color: Color(0xFF045E83),
                 ),
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   labelStyle: TextStyle(
-                    color: Color(0xFF045E83), // Cor do labelText
+                    color: Color(0xFF045E83),
                     fontFamily: 'Inter',
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                   ),
-                  filled: true, // Preenchimento ativado
-                  fillColor: Color(0xFFB4D6E0), // Cor de fundo 0xFFB4D6E0
+                  filled: true,
+                  fillColor: Color(0xFFB4D6E0),
                   border: OutlineInputBorder(
                     borderSide: BorderSide(
-                      color: Color(0xFF045E83), // Cor da borda
-                      width: 1.0, // Espessura da borda
+                      color: Color(0xFF045E83),
+                      width: 1.0,
                     ),
-                    borderRadius: BorderRadius.circular(20), // Borda arredondada
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   suffixIcon: IconButton(
                     onPressed: () {
-                      // Invertendo o estado da visibilidade da senha
                       setState(() {
                         _isPasswordVisible = !_isPasswordVisible;
                       });
                     },
-                    // Alterando o ícone com base no estado da visibilidade da senha
                     icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
                   ),
                 ),
-                obscureText: !_isPasswordVisible, // Oculta a senha se _isPasswordVisible for false
+                obscureText: !_isPasswordVisible,
               ),
             ),
-            // Checkbox "Lembre de mim"
             Row(
               children: [
                 Checkbox(
@@ -212,15 +257,15 @@ class _telaloginState extends State<telalogin> {
                   onChanged: (value) {
                     setState(() {
                       _rememberMe = value!;
-                      _salvarDados(); // Salvando ou removendo os dados com base no estado do checkbox
+                      _salvarDados();
                     });
                   },
-                  activeColor: Color(0xFFEFAA4F), // Alterando a cor do checkbox selecionado
+                  activeColor: Color(0xFFEFAA4F),
                 ),
                 Text(
                   'Lembre de mim',
                   style: TextStyle(
-                    color: Colors.white, // Alterando a cor do texto para branco
+                    color: Colors.white,
                     fontFamily: 'Inter',
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
@@ -228,22 +273,17 @@ class _telaloginState extends State<telalogin> {
                 ),
               ],
             ),
-            // Botão de login
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: ElevatedButton(
                 onPressed: () {
-                  _salvarDados(); // Salvando os dados antes de ir para a próxima tela
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => menuprincipal()),
-                  );
+                  _salvarDados();
+                  _verificarCredenciais(context);
                 },
                 child: Text('Login'),
               ),
             ),
             SizedBox(height: 10),
-            // Texto "Sou novo, realizar cadastro" clicável
             GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -254,10 +294,10 @@ class _telaloginState extends State<telalogin> {
               child: Text(
                 'Sou novo, realizar cadastro',
                 style: TextStyle(
-                  color: Colors.lightBlueAccent, // Cor do texto
+                  color: Colors.lightBlueAccent,
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  decoration: TextDecoration.underline, // Sublinhado
+                  decoration: TextDecoration.underline,
                 ),
               ),
             ),
@@ -269,9 +309,83 @@ class _telaloginState extends State<telalogin> {
 }
 
 class _criaruserState extends State<criaruser> {
-  @override
+  final TextEditingController _nomeController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _senhaController = TextEditingController();
+  final TextEditingController _confirmarSenhaController = TextEditingController();
+
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+
+  Future<void> _adicionarPessoaAoBancoDeDados(BuildContext context) async {
+    // Verificar se a senha e a confirmação de senha são iguais
+    if (_senhaController.text == _confirmarSenhaController.text) {
+      // Abrir o banco de dados
+      final Database db = await _abrirBancoDeDados();
+
+      // Inserir dados da pessoa na tabela 'pessoa'
+      await db.insert(
+        'pessoa',
+        {
+          'nome': _nomeController.text,
+          'email': _emailController.text,
+          'senha': _senhaController.text,
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+
+      // Exibir mensagem de sucesso
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Sucesso'),
+            content: Text('Cadastro realizado com sucesso.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Senha e confirmação de senha não coincidem, exibir mensagem de erro
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Erro'),
+            content: Text('As senhas não coincidem. Por favor, tente novamente.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  Future<Database> _abrirBancoDeDados() async {
+    final String path = join(await getDatabasesPath(), 'banco_dados.db');
+    return openDatabase(
+      path,
+      onCreate: (db, version) {
+        return db.execute(
+          "CREATE TABLE pessoa(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, senha TEXT)",
+        );
+      },
+      version: 1,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -306,6 +420,7 @@ class _criaruserState extends State<criaruser> {
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: TextField(
+                controller: _nomeController,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 15,
@@ -336,6 +451,7 @@ class _criaruserState extends State<criaruser> {
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: TextField(
+                controller: _emailController,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 15,
@@ -366,6 +482,7 @@ class _criaruserState extends State<criaruser> {
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: TextField(
+                controller: _senhaController,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 15,
@@ -405,6 +522,7 @@ class _criaruserState extends State<criaruser> {
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: TextField(
+                controller: _confirmarSenhaController,
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontSize: 15,
@@ -444,8 +562,9 @@ class _criaruserState extends State<criaruser> {
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: ElevatedButton(
-                onPressed: () {
-                  // Lógica para finalizar o cadastro
+                onPressed: () async {
+                  // Lógica para finalizar o cadastro e adicionar ao banco de dados
+                  await _adicionarPessoaAoBancoDeDados(context);
                 },
                 child: Text('Finalizar Cadastro'),
               ),
