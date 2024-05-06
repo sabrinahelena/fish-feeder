@@ -325,14 +325,14 @@ class _criaruserState extends State<criaruser> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  Future<int> _adicionarPessoaAoBancoDeDados(BuildContext context) async {
+  Future<void> _adicionarPessoaAoBancoDeDados(BuildContext context) async {
     // Verificar se a senha e a confirmação de senha são iguais
     if (_senhaController.text == _confirmarSenhaController.text) {
       // Abrir o banco de dados
       final Database db = await _abrirBancoDeDados();
 
       // Inserir dados da pessoa na tabela 'pessoa'
-      final int id = await db.insert(
+      await db.insert(
         'pessoa',
         {
           'nome': _nomeController.text,
@@ -353,6 +353,10 @@ class _criaruserState extends State<criaruser> {
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => telalogin()),
+                  );
                 },
                 child: Text('OK'),
               ),
@@ -360,9 +364,6 @@ class _criaruserState extends State<criaruser> {
           );
         },
       );
-
-      // Retornar o ID inserido
-      return id;
     } else {
       // Senha e confirmação de senha não coincidem, exibir mensagem de erro
       showDialog(
@@ -382,7 +383,6 @@ class _criaruserState extends State<criaruser> {
           );
         },
       );
-      return -1;
     }
   }
 
@@ -677,6 +677,21 @@ class _telaperfil extends State<telaperfil> {
     );
   }
 
+  // Função para excluir a conta do usuário
+  Future<void> _excluirConta(BuildContext context) async {
+    final Database db = await _abrirBancoDeDados();
+    await db.delete(
+      'pessoa',
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+    // Após excluir a conta, redireciona o usuário para a tela de login
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => telalogin()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Verifica se as informações do usuário foram carregadas
@@ -819,6 +834,13 @@ class _telaperfil extends State<telaperfil> {
                     _salvarDados(context);
                   },
                   child: Text('Salvar'),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    _excluirConta(context);
+                  },
+                  child: Text('Excluir Conta'),
                 ),
               ],
             ),
