@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
+
 class telalogin extends StatefulWidget {
   const telalogin({Key? key}) : super(key: key);
 
@@ -20,10 +21,12 @@ class criaruser extends StatefulWidget {
 }
 
 class menuprincipal extends StatefulWidget {
-  const menuprincipal({Key? key}) : super(key: key);
+  final int userId; // Adiciona o parâmetro userId
+
+  menuprincipal({required this.userId, Key? key}) : super(key: key);
 
   @override
-  _menuprincipalState createState() => _menuprincipalState();
+  _menuprincipalState createState() => _menuprincipalState(userId: userId);
 }
 
 class telainforma extends StatefulWidget{
@@ -48,10 +51,11 @@ class horariosalimentacao extends StatefulWidget {
 }
 
 class telaperfil extends StatefulWidget {
-  const telaperfil({Key? key}) : super(key: key);
+  final int userId; // Adiciona o parâmetro userId
+  telaperfil({required this.userId, Key? key}) : super(key: key);
 
   @override
-  _telaperfil createState() => _telaperfil();
+  _telaperfil createState() => _telaperfil(userId: userId);
 }
 
 class _telaloginState extends State<telalogin> {
@@ -82,9 +86,10 @@ class _telaloginState extends State<telalogin> {
     );
 
     if (result.isNotEmpty) {
-      Navigator.push(
+      final int userId = result[0]['id'];
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => menuprincipal()),
+        MaterialPageRoute(builder: (context) => menuprincipal(userId: userId)),
       );
     } else {
       showDialog(
@@ -317,14 +322,14 @@ class _criaruserState extends State<criaruser> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  Future<void> _adicionarPessoaAoBancoDeDados(BuildContext context) async {
+  Future<int> _adicionarPessoaAoBancoDeDados(BuildContext context) async {
     // Verificar se a senha e a confirmação de senha são iguais
     if (_senhaController.text == _confirmarSenhaController.text) {
       // Abrir o banco de dados
       final Database db = await _abrirBancoDeDados();
 
       // Inserir dados da pessoa na tabela 'pessoa'
-      await db.insert(
+      final int id = await db.insert(
         'pessoa',
         {
           'nome': _nomeController.text,
@@ -352,6 +357,9 @@ class _criaruserState extends State<criaruser> {
           );
         },
       );
+
+      // Retornar o ID inserido
+      return id;
     } else {
       // Senha e confirmação de senha não coincidem, exibir mensagem de erro
       showDialog(
@@ -371,7 +379,14 @@ class _criaruserState extends State<criaruser> {
           );
         },
       );
+      return -1;
     }
+  }
+
+  Future<void> _limparTabelaPessoa() async {
+    final Database db = await _abrirBancoDeDados();
+    await db.delete('pessoa');
+    print('Tabela pessoa limpa.');
   }
 
   Future<Database> _abrirBancoDeDados() async {
@@ -558,17 +573,18 @@ class _criaruserState extends State<criaruser> {
                 obscureText: !_isConfirmPasswordVisible,
               ),
             ),
-            // Botão de finalizar cadastro
+            SizedBox(height: 20),
+            // Botão de cadastro
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
               child: ElevatedButton(
-                onPressed: () async {
-                  // Lógica para finalizar o cadastro e adicionar ao banco de dados
-                  await _adicionarPessoaAoBancoDeDados(context);
+                onPressed: () {
+                  _adicionarPessoaAoBancoDeDados(context);
                 },
-                child: Text('Finalizar Cadastro'),
+                child: Text('Cadastrar'),
               ),
             ),
+            SizedBox(height: 20),
           ],
         ),
       ),
@@ -577,14 +593,94 @@ class _criaruserState extends State<criaruser> {
 }
 
 class _telaperfil extends State<telaperfil> {
-// Variáveis para armazenar os dados do usuário
-  String nome = 'Nome do Usuário';
-  String email = 'usuario@example.com';
-  String senha = 'senha123';
+  late String nome;
+  late String email;
+  late String senha;
   bool _isPasswordVisible = false;
+  final int userId; // Adicionando userId como um campo
+
+  // Modificando o construtor para aceitar userId como parâmetro
+  _telaperfil({required this.userId});
+
+  @override
+  void initState() {
+    super.initState();
+    _recuperarInformacoesUsuario(); // Chama a função para recuperar as informações do usuário
+  }
+
+  Future<void> _recuperarInformacoesUsuario() async {
+    // Lógica para recuperar as informações do usuário com base no userId do banco de dados
+    final Database db = await _abrirBancoDeDados();
+    final List<Map<String, dynamic>> result = await db.query(
+      'pessoa',
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+
+    if (result.isNotEmpty) {
+      setState(() {
+        nome = result[0]['nome'];
+        email = result[0]['email'];
+        senha = result[0]['senha'];
+      });
+    }
+  }
+
+  // Função para salvar os dados do usuário
+  Future<void> _salvarDados(BuildContext context) async {
+    final Database db = await _abrirBancoDeDados();
+    await db.update(
+      'pessoa',
+      {
+        'nome': nome,
+        'email': email,
+        'senha': senha,
+      },
+      where: 'id = ?',
+      whereArgs: [userId],
+    );
+
+    // Exemplo de como você pode exibir um diálogo informando que os dados foram salvos
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Sucesso'),
+          content: Text('Informações atualizadas com sucesso.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Função para abrir o banco de dados
+  Future<Database> _abrirBancoDeDados() async {
+    final String path = join(await getDatabasesPath(), 'banco_dados.db');
+    return openDatabase(
+      path,
+      onCreate: (db, version) {
+        return db.execute(
+          "CREATE TABLE pessoa(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, senha TEXT)",
+        );
+      },
+      version: 1,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Verifica se as informações do usuário foram carregadas
+    if (nome == null || email == null || senha == null) {
+      return Center(child: CircularProgressIndicator());
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -602,14 +698,14 @@ class _telaperfil extends State<telaperfil> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/FundoInfo.jpg"), // Caminho da imagem de fundo
-            fit: BoxFit.cover, // Ajuste para cobrir toda a área do container
+            image: AssetImage("assets/FundoInfo.jpg"),
+            fit: BoxFit.cover,
           ),
         ),
         child: SingleChildScrollView(
           padding: EdgeInsets.all(20.0),
           child: Container(
-            height: MediaQuery.of(context).size.height, // Altura igual à altura da tela
+            height: MediaQuery.of(context).size.height,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -634,12 +730,12 @@ class _telaperfil extends State<telaperfil> {
                       fontFamily: 'Inter',
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xFF045E83), // Cor do texto
+                      color: Color(0xFF045E83),
                     ),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      filled: true, // Preenchimento ativado
-                      fillColor: Color(0xFFB4D6E0), // Cor de fundo 0xFFB4D6E0
+                      filled: true,
+                      fillColor: Color(0xFFB4D6E0),
                     ),
                   ),
                 ),
@@ -665,12 +761,12 @@ class _telaperfil extends State<telaperfil> {
                       fontFamily: 'Inter',
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xFF045E83), // Cor do texto
+                      color: Color(0xFF045E83),
                     ),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      filled: true, // Preenchimento ativado
-                      fillColor: Color(0xFFB4D6E0), // Cor de fundo 0xFFB4D6E0
+                      filled: true,
+                      fillColor: Color(0xFFB4D6E0),
                     ),
                   ),
                 ),
@@ -697,12 +793,12 @@ class _telaperfil extends State<telaperfil> {
                       fontFamily: 'Inter',
                       fontSize: 15,
                       fontWeight: FontWeight.w400,
-                      color: Color(0xFF045E83), // Cor do texto
+                      color: Color(0xFF045E83),
                     ),
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      filled: true, // Preenchimento ativado
-                      fillColor: Color(0xFFB4D6E0), // Cor de fundo 0xFFB4D6E0
+                      filled: true,
+                      fillColor: Color(0xFFB4D6E0),
                       suffixIcon: IconButton(
                         icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
                         onPressed: () {
@@ -717,10 +813,7 @@ class _telaperfil extends State<telaperfil> {
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
-                    // Lógica para salvar os dados do usuário
-                    // Você pode implementar a lógica de salvar os dados aqui
-                    // Por exemplo, você pode chamar uma função para enviar os dados para um servidor
-                    // Ou pode salvar localmente usando SharedPreferences, por exemplo
+                    _salvarDados(context);
                   },
                   child: Text('Salvar'),
                 ),
@@ -734,11 +827,75 @@ class _telaperfil extends State<telaperfil> {
 }
 
 class _menuprincipalState extends State<menuprincipal> {
+  late Database _database;
+
   // Variável para armazenar o horário atual
-  String horarioAtual = '10:00';
+  String horarioAtual = '';
 
   // Variável para armazenar o horário da última alimentação
   String ultimaAlimentacao = '09:00';
+
+  final int userId;
+
+  _menuprincipalState({required this.userId});
+
+  @override
+  void initState() {
+    super.initState();
+    _abrirBancoDeDados(); // Abre o banco de dados
+    _atualizarHorarioAtual(); // Chama a função para atualizar o horário atual
+    // Configura um Timer para atualizar o horário a cada segundo
+    Timer.periodic(Duration(seconds: 1), (timer) {
+      _atualizarHorarioAtual();
+    });
+  }
+
+  // Função para abrir o banco de dados
+  void _abrirBancoDeDados() async {
+    final String path = join(await getDatabasesPath(), 'nome_do_seu_banco_de_dados.db');
+    _database = await openDatabase(
+      path,
+      onCreate: (db, version) {
+        // Cria a tabela Alimentação se ainda não existir
+        return db.execute(
+          "CREATE TABLE Alimentacao(id INTEGER PRIMARY KEY, id_pessoa INTEGER, nivel_comida INTEGER, ultima_alimentacao TEXT)",
+        );
+      },
+      version: 1,
+    );
+  }
+
+  // Função para atualizar o horário atual
+  void _atualizarHorarioAtual() {
+    setState(() {
+      // Obtém o horário atual do sistema
+      DateTime now = DateTime.now();
+      // Formata o horário para uma string no formato HH:mm
+      horarioAtual = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+    });
+  }
+
+  // Função para alimentar agora
+  void _alimentarAgora() async {
+    if (_database == null) {
+      return; // Verifica se o banco de dados foi aberto corretamente
+    }
+
+    // Obtém o horário atual
+    DateTime now = DateTime.now();
+    String horarioAtual = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+
+    // Insere os dados na tabela Alimentação
+    await _database.rawInsert(
+      'INSERT INTO Alimentacao (id_pessoa, nivel_comida, ultima_alimentacao) VALUES (?, ?, ?)',
+      [userId, 70, horarioAtual],
+    );
+
+    // Atualiza o horário da última alimentação na tela
+    setState(() {
+      ultimaAlimentacao = horarioAtual;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -762,7 +919,17 @@ class _menuprincipalState extends State<menuprincipal> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => telaperfil()),
+                MaterialPageRoute(builder: (context) => telaperfil(userId: userId)),
+              );
+            },
+          ),
+          // Ícone de logoff
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => telalogin()),
               );
             },
           ),
@@ -794,6 +961,15 @@ class _menuprincipalState extends State<menuprincipal> {
                         style: TextStyle(
                           fontSize: 40, // Tamanho da fonte do relógio
                           fontWeight: FontWeight.bold, // Texto em negrito
+                          fontFamily: 'Roboto', // Usando a fonte Roboto
+                          color: Colors.white, // Cor do texto
+                          shadows: [
+                            Shadow(
+                              color: Colors.black,
+                              offset: Offset(1, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
                         ),
                       ), // Horário atual (substitua por sua lógica real de tempo)
                     ],
@@ -825,7 +1001,7 @@ class _menuprincipalState extends State<menuprincipal> {
                       // Botão Alimentar Agora
                       ElevatedButton(
                         onPressed: () {
-                          // Lógica para alimentar agora
+                          _alimentarAgora();
                         },
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
@@ -865,6 +1041,15 @@ class _menuprincipalState extends State<menuprincipal> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20, // Tamanho da fonte para a última alimentação
+                      fontFamily: 'Roboto', // Usando a fonte Roboto
+                      color: Colors.white, // Cor do texto
+                      shadows: [
+                        Shadow(
+                          color: Colors.black,
+                          offset: Offset(1, 1),
+                          blurRadius: 2,
+                        ),
+                      ],
                     ),
                   ),
                 ],
