@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
-
 class telalogin extends StatefulWidget {
   const telalogin({Key? key}) : super(key: key);
 
@@ -37,17 +36,21 @@ class telainforma extends StatefulWidget{
 }
 
 class telanivelcomida extends StatefulWidget {
-  const telanivelcomida({Key? key}) : super(key: key);
+  final int userId;
+
+  telanivelcomida({required this.userId});
 
   @override
-  _telaNivelComidaState createState() => _telaNivelComidaState();
+  _telaNivelComidaState createState() => _telaNivelComidaState(userId: userId);
 }
 
 class horariosalimentacao extends StatefulWidget {
-  const horariosalimentacao({Key? key}) : super(key: key);
+  final int userId; // Adiciona o parâmetro userId
+
+  const horariosalimentacao({required this.userId, Key? key}) : super(key: key);
 
   @override
-  _horariosalimentacao createState() => _horariosalimentacao();
+  _horariosalimentacao createState() => _horariosalimentacao(userId: userId);
 }
 
 class telaperfil extends StatefulWidget {
@@ -843,6 +846,7 @@ class _menuprincipalState extends State<menuprincipal> {
   void initState() {
     super.initState();
     _abrirBancoDeDados(); // Abre o banco de dados
+    _carregarUltimaAlimentacao(); // Carrega a última alimentação ao iniciar
     _atualizarHorarioAtual(); // Chama a função para atualizar o horário atual
     // Configura um Timer para atualizar o horário a cada segundo
     Timer.periodic(Duration(seconds: 1), (timer) {
@@ -875,6 +879,30 @@ class _menuprincipalState extends State<menuprincipal> {
     });
   }
 
+  // Função para carregar a última alimentação do banco de dados
+  Future<void> _carregarUltimaAlimentacao() async {
+    if (_database == null) {
+      print('Banco de dados não está aberto corretamente');
+      return; // Verifica se o banco de dados foi aberto corretamente
+    }
+
+    // Consulta o último registro da tabela Alimentação para o usuário atual
+    List<Map<String, dynamic>> result = await _database.rawQuery(
+      'SELECT ultima_alimentacao FROM Alimentacao WHERE id_pessoa = ? ORDER BY id DESC LIMIT 1',
+      [userId],
+    );
+
+    // Se houver resultados, atualiza o horário da última alimentação
+    if (result.isNotEmpty) {
+      setState(() {
+        ultimaAlimentacao = result.first['ultima_alimentacao'];
+      });
+      print('Última alimentação carregada com sucesso: $ultimaAlimentacao');
+    } else {
+      print('Nenhum registro encontrado para o usuário $userId');
+    }
+  }
+
   // Função para alimentar agora
   void _alimentarAgora() async {
     if (_database == null) {
@@ -888,7 +916,7 @@ class _menuprincipalState extends State<menuprincipal> {
     // Insere os dados na tabela Alimentação
     await _database.rawInsert(
       'INSERT INTO Alimentacao (id_pessoa, nivel_comida, ultima_alimentacao) VALUES (?, ?, ?)',
-      [userId, 70, horarioAtual],
+      [userId, 100, horarioAtual],
     );
 
     // Atualiza o horário da última alimentação na tela
@@ -984,15 +1012,15 @@ class _menuprincipalState extends State<menuprincipal> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => horariosalimentacao()),
+                            MaterialPageRoute(builder: (context) => horariosalimentacao(userId: userId)),
                           );
                         },
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
-                          foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
+                          backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)),
+                          foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)),
                           side: MaterialStateProperty.all(BorderSide(
-                            color: Color(0xFFE1EC2B), // Cor da borda
-                            width: 1, // Largura da borda
+                            color: Color(0xFFE1EC2B),
+                            width: 1,
                           )),
                         ),
                         child: Text('Programar Horário', style: TextStyle(fontSize: 15)),
@@ -1019,7 +1047,7 @@ class _menuprincipalState extends State<menuprincipal> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => telanivelcomida()),
+                            MaterialPageRoute(builder: (context) => telanivelcomida(userId: userId)),
                           );
                         },
                         style: ButtonStyle(
@@ -1231,12 +1259,42 @@ class _telainformaState extends State<telainforma>{
 }
 
 class _telaNivelComidaState extends State<telanivelcomida> {
+  final int userId;
+  int nivelComidaAtual = 0; // Nível de comida atual (inicializado com 0)
+  int capacidadeMaxima = 100; // Capacidade máxima do recipiente de comida
+
+  _telaNivelComidaState({required this.userId});
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarNivelComidaAtual();
+  }
+
+  Future<void> _carregarNivelComidaAtual() async {
+    // Abre o banco de dados
+    final String path = join(await getDatabasesPath(), 'nome_do_seu_banco_de_dados.db');
+    final Database _database = await openDatabase(
+      path,
+      version: 1,
+    );
+
+    // Consulta o último registro da tabela Alimentação para o usuário atual
+    List<Map<String, dynamic>> result = await _database.rawQuery(
+      'SELECT nivel_comida FROM Alimentacao WHERE id_pessoa = ? ORDER BY id DESC LIMIT 1',
+      [userId],
+    );
+
+    // Se houver resultados, atualize o nível de comida atual
+    if (result.isNotEmpty) {
+      setState(() {
+        nivelComidaAtual = result.first['nivel_comida'];
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Informações fictícias sobre o nível de comida
-    int nivelComidaAtual = 70; // Nível de comida atual (em porcentagem)
-    int capacidadeMaxima = 100; // Capacidade máxima do recipiente de comida
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -1323,34 +1381,39 @@ class _telaNivelComidaState extends State<telanivelcomida> {
 }
 
 class _horariosalimentacao extends State<horariosalimentacao> {
-  List<TextEditingController> timeControllers = [];
+  final int userId;
+
+  _horariosalimentacao({required this.userId});
+
   List<TextEditingController> nameControllers = [];
+  List<TimeOfDay?> selectedTimes = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Horarios de alimentação',
+        title: Text(
+          'Horarios de alimentação',
           style: TextStyle(
-              fontSize:25,
-              fontWeight:FontWeight.w600,
-              color:Color(0xFF045E83),
-              letterSpacing:2.0
+            fontSize: 25,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF045E83),
+            letterSpacing: 2.0,
           ),
         ),
-        backgroundColor:Color(0xFFB4D6E0),
-
+        backgroundColor: Color(0xFFB4D6E0),
       ),
       body: Container(
+        height: MediaQuery.of(context).size.height,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/water.jpeg'),
             fit: BoxFit.cover,
           ),
         ),
-        child: Center(
+        padding: EdgeInsets.all(20),
+        child: SingleChildScrollView(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 'Insira os horários para o peixe',
@@ -1361,85 +1424,75 @@ class _horariosalimentacao extends State<horariosalimentacao> {
                 ),
               ),
               SizedBox(height: 20),
-              for (var i = 0; i < timeControllers.length; i++)
-                Container(
-                  margin: EdgeInsets.symmetric(vertical: 5),
-                  padding: EdgeInsets.all(8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 120,
-                        child: TextField(
-                          controller: nameControllers[i],
-                          keyboardType: TextInputType.text,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.black.withOpacity(0.5),
-                            hintText: 'Nome',
-                            hintStyle: TextStyle(color: Colors.white),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(10),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: nameControllers.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Container(
+                    margin: EdgeInsets.symmetric(vertical: 5),
+                    padding: EdgeInsets.all(8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 100,
+                          child: TextField(
+                            controller: nameControllers[index],
+                            keyboardType: TextInputType.text,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.black.withOpacity(0.5),
+                              hintText: 'Nome',
+                              hintStyle: TextStyle(color: Colors.white),
+                              border: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'Horário ${i + 1}: ',
-                          style: TextStyle(
-                            fontSize: 20,
-                            color: Colors.white,
+                        SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: () {
+                            _selectTime(context, index);
+                          },
+                          child: Text(
+                            selectedTimes[index]?.format(context) ?? 'Selecionar',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), // Defina a cor de fundo
                           ),
                         ),
-                      ),
-                      SizedBox(width: 10),
-                      SizedBox(
-                        width: 100,
-                        child: TextField(
-                          controller: timeControllers[i],
-                          keyboardType: TextInputType.datetime,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(8), // Limita o número máximo de caracteres
-                            FilteringTextInputFormatter.digitsOnly, // Permite apenas dígitos
-                            _HoraInputFormatter(), // Formata automaticamente para o formato HH:MM:SS
-                          ],
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.black.withOpacity(0.5),
-                            hintText: 'HH:MM:SS',
-                            hintStyle: TextStyle(color: Colors.white),
-                            border: OutlineInputBorder(
-                              borderSide: BorderSide.none,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              SizedBox(height: 20), // Adicione um espaçamento após a lista de horários
+              ElevatedButton(
+                onPressed: _adicionarHorario,
+                child: Text(
+                  'Adicionar Horário',
+                  style: TextStyle(color: Colors.white),
                 ),
-              if (timeControllers.length < 6)
-                ElevatedButton(
-                  onPressed: () {
-                    _adicionarHorario();
-                  },
-                  child: Text(
-                    'Adicionar Horário',
-                    style: TextStyle(color: Colors.blue), // Cor azul para o texto do botão
-                  ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), // Defina a cor de fundo
                 ),
+              ),
+              SizedBox(height: 20), // Adicione um espaçamento após o botão "Adicionar Horário"
+              ElevatedButton(
+                onPressed: () {},
+                child: Text(
+                  'Enviar',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), // Defina a cor de fundo
+                ),
+              ),
             ],
           ),
         ),
@@ -1450,8 +1503,21 @@ class _horariosalimentacao extends State<horariosalimentacao> {
   void _adicionarHorario() {
     setState(() {
       nameControllers.add(TextEditingController());
-      timeControllers.add(TextEditingController());
+      selectedTimes.add(null);
     });
+  }
+
+  Future<void> _selectTime(BuildContext context, int index) async {
+    final TimeOfDay? selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (selectedTime != null) {
+      setState(() {
+        selectedTimes[index] = selectedTime;
+      });
+    }
   }
 
   @override
@@ -1459,32 +1525,16 @@ class _horariosalimentacao extends State<horariosalimentacao> {
     for (var controller in nameControllers) {
       controller.dispose();
     }
-    for (var controller in timeControllers) {
-      controller.dispose();
-    }
     super.dispose();
   }
 }
 
-class _HoraInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    final text = _formatText(newValue.text);
-    return newValue.copyWith(text: text, selection: TextSelection.collapsed(offset: text.length));
-  }
-
-  String _formatText(String text) {
-    final RegExp regex = RegExp(r'^(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$');
-    String formattedText = '';
-    for (int i = 0; i < text.length; i++) {
-      if (!regex.hasMatch(formattedText) && text[i] != ':') {
-        formattedText += text[i];
-        if (formattedText.length == 2 || formattedText.length == 5) {
-          formattedText += ':';
-        }
-      }
-    }
-    return formattedText;
+extension TimeOfDayExtension on TimeOfDay {
+  String format(BuildContext context) {
+    final MaterialLocalizations localizations = MaterialLocalizations.of(context);
+    final String hourLabel = localizations.formatHour(this);
+    final String minuteLabel = localizations.formatMinute(this);
+    return '$hourLabel:$minuteLabel';
   }
 }
+
