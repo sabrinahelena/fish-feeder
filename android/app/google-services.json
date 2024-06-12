@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "31618739184",
+    "project_id": "fishfeeder-638f5",
+    "storage_bucket": "fishfeeder-638f5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:31618739184:android:bc9d3cb682c33096640b35",
+        "android_client_info": {
+          "package_name": "pucminas.br.fishfeeder.trabalho_lddm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATt5sjT3-Vp4ZW8Sd0F4_DxkhSF6XXze0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

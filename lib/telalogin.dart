@@ -4,6 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:trabalho_lddm/firebase_options.dart';
 
 class telalogin extends StatefulWidget {
   const telalogin({Key? key}) : super(key: key);
