@@ -1,9 +1,14 @@
 import 'dart:async';
+import 'dart:collection';
+import 'dart:ffi';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:trabalho_lddm/firebase_options.dart';
 
@@ -22,12 +27,12 @@ class criaruser extends StatefulWidget {
 }
 
 class menuprincipal extends StatefulWidget {
-  final int userId; // Adiciona o parâmetro userId
+  final String userId;
 
-  menuprincipal({required this.userId, Key? key}) : super(key: key);
+  menuprincipal({required this.userId});
 
   @override
-  _menuprincipalState createState() => _menuprincipalState(userId: userId);
+  _menuprincipalState createState() => _menuprincipalState();
 }
 
 class telainforma extends StatefulWidget{
@@ -38,26 +43,27 @@ class telainforma extends StatefulWidget{
 }
 
 class telanivelcomida extends StatefulWidget {
-  final int userId;
+  final String userId;
 
   telanivelcomida({required this.userId});
 
   @override
-  _telaNivelComidaState createState() => _telaNivelComidaState(userId: userId);
+  _telaNivelComidaState createState() => _telaNivelComidaState();
 }
 
 class horariosalimentacao extends StatefulWidget {
-  final int userId; // Adiciona o parâmetro userId
+  final String userId;
 
-  const horariosalimentacao({required this.userId, Key? key}) : super(key: key);
+  horariosalimentacao({required this.userId});
 
   @override
-  _horariosalimentacao createState() => _horariosalimentacao(userId: userId);
+  _horariosalimentacao createState() => _horariosalimentacao();
 }
 
 class telaperfil extends StatefulWidget {
-  final int userId; // Adiciona o parâmetro userId
-  telaperfil({required this.userId, Key? key}) : super(key: key);
+  final String userId;
+
+  telaperfil({required this.userId});
 
   @override
   _telaperfil createState() => _telaperfil(userId: userId);
@@ -82,27 +88,35 @@ class _telaloginState extends State<telalogin> {
     final String email = _emailController.text;
     final String senha = _senhaController.text;
 
-    final Database db = await _abrirBancoDeDados();
-
-    final List<Map<String, dynamic>> result = await db.query(
-      'pessoa',
-      where: 'email = ? AND senha = ?',
-      whereArgs: [email, senha],
-    );
-
-    if (result.isNotEmpty) {
-      final int userId = result[0]['id'];
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => menuprincipal(userId: userId)),
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: senha,
       );
-    } else {
+      User? user = userCredential.user;
+
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => menuprincipal(userId: user.uid)),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = '';
+      if (e.code == 'user-not-found') {
+        message = 'Usuário não encontrado.';
+      } else if (e.code == 'wrong-password') {
+        message = 'Senha incorreta.';
+      } else {
+        message = 'Ocorreu um erro. Tente novamente.';
+      }
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Erro'),
-            content: Text('Credenciais incorretas. Por favor, tente novamente.'),
+            content: Text(message),
             actions: [
               TextButton(
                 onPressed: () {
@@ -147,19 +161,6 @@ class _telaloginState extends State<telalogin> {
     });
     print("Email recuperado: $_emailSalvo");
     print("Senha recuperada: $_senhaSalva");
-  }
-
-  Future<Database> _abrirBancoDeDados() async {
-    final String path = join(await getDatabasesPath(), 'banco_dados.db');
-    return openDatabase(
-      path,
-      onCreate: (db, version) {
-        return db.execute(
-          "CREATE TABLE pessoa(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, senha TEXT)",
-        );
-      },
-      version: 1,
-    );
   }
 
   @override
@@ -327,84 +328,77 @@ class _criaruserState extends State<criaruser> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
-  Future<void> _adicionarPessoaAoBancoDeDados(BuildContext context) async {
-    // Verificar se a senha e a confirmação de senha são iguais
-    if (_senhaController.text == _confirmarSenhaController.text) {
-      // Abrir o banco de dados
-      final Database db = await _abrirBancoDeDados();
+  Future<void> _adicionarUsuarioAoFirebase(BuildContext context) async {
+    try {
+      if (_senhaController.text == _confirmarSenhaController.text) {
+        UserCredential userCredential = await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+            email: _emailController.text, password: _senhaController.text);
 
-      // Inserir dados da pessoa na tabela 'pessoa'
-      await db.insert(
-        'pessoa',
-        {
+        // Obtém o UID do usuário recém-criado
+        String uid = userCredential.user!.uid;
+
+        // Adiciona dados do usuário na coleção 'Usuarios' do Firestore
+        await FirebaseFirestore.instance.collection('Usuarios').doc(uid).set({
+          'uid': uid,
           'nome': _nomeController.text,
           'email': _emailController.text,
           'senha': _senhaController.text,
-        },
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
+          // Você pode adicionar mais campos conforme necessário
+        });
 
-      // Exibir mensagem de sucesso
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Sucesso'),
-            content: Text('Cadastro realizado com sucesso.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => telalogin()),
-                  );
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      // Senha e confirmação de senha não coincidem, exibir mensagem de erro
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Erro'),
-            content: Text('As senhas não coincidem. Por favor, tente novamente.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-
-  Future<void> _limparTabelaPessoa() async {
-    final Database db = await _abrirBancoDeDados();
-    await db.delete('pessoa');
-    print('Tabela pessoa limpa.');
-  }
-
-  Future<Database> _abrirBancoDeDados() async {
-    final String path = join(await getDatabasesPath(), 'banco_dados.db');
-    return openDatabase(
-      path,
-      onCreate: (db, version) {
-        return db.execute(
-          "CREATE TABLE pessoa(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, senha TEXT)",
+        // Exibe mensagem de sucesso
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Sucesso'),
+              content: Text('Cadastro realizado com sucesso.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => telalogin()),
+                    );
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
         );
-      },
-      version: 1,
-    );
+      } else {
+        // Senha e confirmação de senha não coincidem, exibir mensagem de erro
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Erro'),
+              content: Text(
+                  'As senhas não coincidem. Por favor, tente novamente.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        print('The password provided is too weak.');
+      } else if (e.code == 'email-already-in-use') {
+        print('The account already exists for that email.');
+      }
+    } catch (e) {
+      print(e);
+    }
   }
 
   @override
@@ -435,7 +429,7 @@ class _criaruserState extends State<criaruser> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 50),
+            SizedBox(height: 20),
             // Campo de texto para o nome
             Container(
               margin: EdgeInsets.symmetric(vertical: 5),
@@ -532,7 +526,8 @@ class _criaruserState extends State<criaruser> {
                         _isPasswordVisible = !_isPasswordVisible;
                       });
                     },
-                    icon: Icon(_isPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(
+                        _isPasswordVisible ? Icons.visibility : Icons.visibility_off),
                   ),
                 ),
                 obscureText: !_isPasswordVisible,
@@ -572,7 +567,8 @@ class _criaruserState extends State<criaruser> {
                         _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
                       });
                     },
-                    icon: Icon(_isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(
+                        _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off),
                   ),
                 ),
                 obscureText: !_isConfirmPasswordVisible,
@@ -584,7 +580,7 @@ class _criaruserState extends State<criaruser> {
               margin: EdgeInsets.symmetric(vertical: 5),
               child: ElevatedButton(
                 onPressed: () {
-                  _adicionarPessoaAoBancoDeDados(context);
+                  _adicionarUsuarioAoFirebase(context);
                 },
                 child: Text('Cadastrar'),
               ),
@@ -598,11 +594,12 @@ class _criaruserState extends State<criaruser> {
 }
 
 class _telaperfil extends State<telaperfil> {
-  late String nome;
-  late String email;
-  late String senha;
+  late String nome = '';
+  late String email = '';
+  late String senha = '';
   bool _isPasswordVisible = false;
-  final int userId; // Adicionando userId como um campo
+  final String userId; // Adicionando userId como um campo
+  bool _isLoading = true; // Variável para controlar o carregamento
 
   // Modificando o construtor para aceitar userId como parâmetro
   _telaperfil({required this.userId});
@@ -614,91 +611,102 @@ class _telaperfil extends State<telaperfil> {
   }
 
   Future<void> _recuperarInformacoesUsuario() async {
-    // Lógica para recuperar as informações do usuário com base no userId do banco de dados
-    final Database db = await _abrirBancoDeDados();
-    final List<Map<String, dynamic>> result = await db.query(
-      'pessoa',
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
+    // Lógica para recuperar as informações do usuário com base no userId do Firebase Firestore
+    try {
+      print('Recuperando informações do usuário com ID: $userId');
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('Usuarios').doc(userId).get();
 
-    if (result.isNotEmpty) {
+      if (userDoc.exists) {
+        print('Informações do usuário encontradas: ${userDoc.data()}');
+        setState(() {
+          nome = userDoc['nome'] ?? '';
+          email = userDoc['email'] ?? '';
+          senha = userDoc['senha'] ?? '';
+          _isLoading = false;
+        });
+      } else {
+        print('Documento do usuário não encontrado.');
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Erro ao recuperar informações do usuário: $e');
       setState(() {
-        nome = result[0]['nome'];
-        email = result[0]['email'];
-        senha = result[0]['senha'];
+        _isLoading = false;
       });
     }
   }
 
   // Função para salvar os dados do usuário
   Future<void> _salvarDados(BuildContext context) async {
-    final Database db = await _abrirBancoDeDados();
-    await db.update(
-      'pessoa',
-      {
+    try {
+      await FirebaseFirestore.instance.collection('Usuarios').doc(userId).update({
         'nome': nome,
         'email': email,
         'senha': senha,
-      },
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
+      });
 
-    // Exemplo de como você pode exibir um diálogo informando que os dados foram salvos
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Sucesso'),
-          content: Text('Informações atualizadas com sucesso.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+      // Atualizando a senha do usuário autenticado no Firebase Authentication
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.updatePassword(senha);
+      }
 
-  // Função para abrir o banco de dados
-  Future<Database> _abrirBancoDeDados() async {
-    final String path = join(await getDatabasesPath(), 'banco_dados.db');
-    return openDatabase(
-      path,
-      onCreate: (db, version) {
-        return db.execute(
-          "CREATE TABLE pessoa(id INTEGER PRIMARY KEY AUTOINCREMENT, nome TEXT, email TEXT, senha TEXT)",
-        );
-      },
-      version: 1,
-    );
+      // Exemplo de como você pode exibir um diálogo informando que os dados foram salvos
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Sucesso'),
+            content: Text('Informações atualizadas com sucesso.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      print('Erro ao salvar dados do usuário: $e');
+    }
   }
 
   // Função para excluir a conta do usuário
   Future<void> _excluirConta(BuildContext context) async {
-    final Database db = await _abrirBancoDeDados();
-    await db.delete(
-      'pessoa',
-      where: 'id = ?',
-      whereArgs: [userId],
-    );
-    // Após excluir a conta, redireciona o usuário para a tela de login
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => telalogin()),
-    );
+    try {
+      await FirebaseFirestore.instance.collection('Usuarios').doc(userId).delete();
+
+      // Também exclui o usuário do Firebase Authentication
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await user.delete();
+      }
+
+      // Após excluir a conta, redireciona o usuário para a tela de login
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => telalogin()),
+      );
+    } catch (e) {
+      print('Erro ao excluir conta do usuário: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // Verifica se as informações do usuário foram carregadas
-    if (nome == null || email == null || senha == null) {
-      return Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Perfil do Usuário'),
+        ),
+        body: Center(child: CircularProgressIndicator()),
+      );
     }
 
     return Scaffold(
@@ -862,10 +870,6 @@ class _menuprincipalState extends State<menuprincipal> {
   // Variável para armazenar o horário da última alimentação
   String ultimaAlimentacao = '09:00';
 
-  final int userId;
-
-  _menuprincipalState({required this.userId});
-
   @override
   void initState() {
     super.initState();
@@ -880,9 +884,9 @@ class _menuprincipalState extends State<menuprincipal> {
 
   // Função para abrir o banco de dados
   void _abrirBancoDeDados() async {
-    final String path = join(await getDatabasesPath(), 'nome_do_seu_banco_de_dados.db');
+    final String dbpath = path.join(await getDatabasesPath(), 'nome_do_seu_banco_de_dados.db');
     _database = await openDatabase(
-      path,
+      dbpath,
       onCreate: (db, version) {
         // Cria a tabela Alimentação se ainda não existir
         return db.execute(
@@ -913,7 +917,7 @@ class _menuprincipalState extends State<menuprincipal> {
     // Consulta o último registro da tabela Alimentação para o usuário atual
     List<Map<String, dynamic>> result = await _database.rawQuery(
       'SELECT ultima_alimentacao FROM Alimentacao WHERE id_pessoa = ? ORDER BY id DESC LIMIT 1',
-      [userId],
+      [widget.userId],
     );
 
     // Se houver resultados, atualiza o horário da última alimentação
@@ -923,30 +927,132 @@ class _menuprincipalState extends State<menuprincipal> {
       });
       print('Última alimentação carregada com sucesso: $ultimaAlimentacao');
     } else {
-      print('Nenhum registro encontrado para o usuário $userId');
+      print('Nenhum registro encontrado para o usuário ${widget.userId}');
     }
   }
 
   // Função para alimentar agora
   void _alimentarAgora() async {
-    if (_database == null) {
-      return; // Verifica se o banco de dados foi aberto corretamente
+    // Obtém o UID do usuário atualmente logado
+    String uid = FirebaseAuth.instance.currentUser!.uid;
+
+    try {
+      // Acesso à coleção 'NivelComida' no Firestore
+      CollectionReference nivelComidaCollection =
+      FirebaseFirestore.instance.collection('NivelComida');
+
+      // Consulta se existe um documento com o mesmo UID na coleção
+      QuerySnapshot query =
+      await nivelComidaCollection.where('userId', isEqualTo: uid).get();
+
+      if (query.docs.isNotEmpty) {
+        // Obtém o ID do documento existente
+        String docId = query.docs.first.id;
+        // Obtém o valor atual de nivelComida e converte para double
+        double currentNivelComida =
+        (query.docs.first['nivelComida'] as num).toDouble();
+
+        // Verifica se o nivelComida é menor ou igual a 0
+        if (currentNivelComida <= 0) {
+          // Mostra um alerta pedindo para reabastecer o alimentador
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text("Atenção"),
+                content: Text(
+                    "O nível de comida está baixo. Por favor, reabasteça o alimentador."),
+                actions: [
+                  TextButton(
+                    child: Text("OK"),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          // Subtrai 6,25 do valor atual
+          double newNivelComida = currentNivelComida - 6.25;
+
+          // Atualiza os dados do documento existente
+          await nivelComidaCollection.doc(docId).update({
+            'nivelComida': newNivelComida, // Atualiza o nível de comida subtraindo 6,25
+            'timestamp': DateTime.now(), // Atualiza o timestamp
+          });
+
+          // Atualiza a variável global ultimaAlimentacao com o horário atual formatado
+          ultimaAlimentacao =
+          '${DateTime.now().hour.toString().padLeft(2, '0')}:${DateTime.now().minute.toString().padLeft(2, '0')}';
+
+          print('Dados atualizados no Firebase com sucesso.');
+        }
+      } else {
+        print('Nenhum documento encontrado para o usuário $uid');
+      }
+    } catch (e) {
+      // Em caso de erro, exibe uma mensagem
+      print('Erro ao atualizar dados no Firebase: $e');
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Erro"),
+            content: Text("Erro ao atualizar dados no Firebase: $e"),
+            actions: [
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
     }
+  }
 
-    // Obtém o horário atual
-    DateTime now = DateTime.now();
-    String horarioAtual = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+  // Função para reabastecer o alimentador e inserir/atualizar dados no Firebase
+  void _reabastecerAlimentador() async {
+    // Obtém o UID do usuário atualmente logado
+    String uid = FirebaseAuth.instance.currentUser!.uid;
 
-    // Insere os dados na tabela Alimentação
-    await _database.rawInsert(
-      'INSERT INTO Alimentacao (id_pessoa, nivel_comida, ultima_alimentacao) VALUES (?, ?, ?)',
-      [userId, 100, horarioAtual],
-    );
+    try {
+      // Acesso à coleção 'NivelComida' no Firestore
+      CollectionReference nivelComidaCollection = FirebaseFirestore.instance.collection('NivelComida');
 
-    // Atualiza o horário da última alimentação na tela
-    setState(() {
-      ultimaAlimentacao = horarioAtual;
-    });
+      // Consulta se existe um documento com o mesmo UID na coleção
+      QuerySnapshot query = await nivelComidaCollection.where('userId', isEqualTo: uid).get();
+
+      // Se já existir um documento, atualiza o nível de comida e o timestamp
+      if (query.docs.isNotEmpty) {
+        // Obtém o ID do documento existente
+        String docId = query.docs.first.id;
+
+        // Atualiza os dados do documento existente
+        await nivelComidaCollection.doc(docId).update({
+          'nivelComida': 100, // Atualiza o nível de comida para 100
+          'timestamp': DateTime.now(), // Atualiza o timestamp
+        });
+
+        print('Dados atualizados no Firebase com sucesso.');
+      } else {
+        // Se não existir documento, insere um novo
+        await nivelComidaCollection.add({
+          'userId': uid,
+          'nivelComida': 100, // Define o nível de comida como 100
+          'timestamp': DateTime.now(), // Adiciona o timestamp atual
+        });
+
+        print('Novo documento inserido no Firebase.');
+      }
+    } catch (e) {
+      // Em caso de erro, exibe uma mensagem
+      print('Erro ao inserir/atualizar dados no Firebase: $e');
+    }
   }
 
   @override
@@ -971,7 +1077,7 @@ class _menuprincipalState extends State<menuprincipal> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => telaperfil(userId: userId)),
+                MaterialPageRoute(builder: (context) => telaperfil(userId: widget.userId)),
               );
             },
           ),
@@ -1036,7 +1142,7 @@ class _menuprincipalState extends State<menuprincipal> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => horariosalimentacao(userId: userId)),
+                            MaterialPageRoute(builder: (context) => horariosalimentacao(userId: widget.userId)),
                           );
                         },
                         style: ButtonStyle(
@@ -1066,12 +1172,28 @@ class _menuprincipalState extends State<menuprincipal> {
                         child: Text('Alimentar Agora', style: TextStyle(fontSize: 15)),
                       ),
                       SizedBox(height: 10), // Espaçamento entre os botões
+                      // Botão Reabastecer Alimentador
+                      ElevatedButton(
+                        onPressed: () {
+                          _reabastecerAlimentador();
+                        },
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all(Color(0xFFE1EC2B)), // Cor de fundo
+                          foregroundColor: MaterialStateProperty.all(Color(0xFFFA803F)), // Cor do texto
+                          side: MaterialStateProperty.all(BorderSide(
+                            color: Color(0xFFE1EC2B), // Cor da borda
+                            width: 1, // Largura da borda
+                          )),
+                        ),
+                        child: Text('Reabastecer Alimentador', style: TextStyle(fontSize: 15)),
+                      ),
+                      SizedBox(height: 10), // Espaçamento entre os botões
                       // Botão Nível de Comida
                       ElevatedButton(
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => telanivelcomida(userId: userId)),
+                            MaterialPageRoute(builder: (context) => telanivelcomida(userId: widget.userId)),
                           );
                         },
                         style: ButtonStyle(
@@ -1086,7 +1208,7 @@ class _menuprincipalState extends State<menuprincipal> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 260), // Espaçamento inferior de 200px para a última alimentação
+                  SizedBox(height: 200), // Espaçamento inferior de 200px para a última alimentação
                   // Texto "Última Alimentação"
                   Text(
                     'Última Alimentação: $ultimaAlimentacao', // Mostra o horário da última alimentação
@@ -1283,11 +1405,8 @@ class _telainformaState extends State<telainforma>{
 }
 
 class _telaNivelComidaState extends State<telanivelcomida> {
-  final int userId;
-  int nivelComidaAtual = 0; // Nível de comida atual (inicializado com 0)
-  int capacidadeMaxima = 100; // Capacidade máxima do recipiente de comida
-
-  _telaNivelComidaState({required this.userId});
+  double nivelComidaAtual = 0.0; // Nível de comida atual (inicializado com 0)
+  double capacidadeMaxima = 100.0; // Capacidade máxima do recipiente de comida
 
   @override
   void initState() {
@@ -1296,24 +1415,30 @@ class _telaNivelComidaState extends State<telanivelcomida> {
   }
 
   Future<void> _carregarNivelComidaAtual() async {
-    // Abre o banco de dados
-    final String path = join(await getDatabasesPath(), 'nome_do_seu_banco_de_dados.db');
-    final Database _database = await openDatabase(
-      path,
-      version: 1,
-    );
+    // Obtém o UID do usuário atualmente logado
+    String uid = FirebaseAuth.instance.currentUser!.uid;
 
-    // Consulta o último registro da tabela Alimentação para o usuário atual
-    List<Map<String, dynamic>> result = await _database.rawQuery(
-      'SELECT nivel_comida FROM Alimentacao WHERE id_pessoa = ? ORDER BY id DESC LIMIT 1',
-      [userId],
-    );
+    try {
+      // Acesso à coleção 'NivelComida' no Firestore
+      CollectionReference nivelComidaCollection = FirebaseFirestore.instance.collection('NivelComida');
 
-    // Se houver resultados, atualize o nível de comida atual
-    if (result.isNotEmpty) {
-      setState(() {
-        nivelComidaAtual = result.first['nivel_comida'];
-      });
+      // Consulta se existe um documento com o mesmo UID na coleção
+      QuerySnapshot query = await nivelComidaCollection.where('userId', isEqualTo: uid).get();
+
+      if (query.docs.isNotEmpty) {
+        // Obtém o ID do documento existente
+        String docId = query.docs.first.id;
+        // Obtém o valor atual de nivelComida e converte para double
+        nivelComidaAtual = (query.docs.first['nivelComida'] as num).toDouble();
+
+        // Atualiza o estado para refletir a mudança
+        setState(() {});
+      } else {
+        print('Nenhum documento encontrado para o usuário ${widget.userId}');
+      }
+    } catch (e) {
+      // Em caso de erro, exibe uma mensagem
+      print('Erro ao atualizar dados no Firebase: $e');
     }
   }
 
@@ -1354,7 +1479,7 @@ class _telaNivelComidaState extends State<telanivelcomida> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white, // Altera a cor do texto para branco
+                      color: Colors.white,
                     ),
                   ),
                   SizedBox(height: 10),
@@ -1370,14 +1495,14 @@ class _telaNivelComidaState extends State<telanivelcomida> {
                         ),
                       ),
                       CircularProgressIndicator(
-                        value: nivelComidaAtual / capacidadeMaxima,
+                        value: capacidadeMaxima != 0 ? nivelComidaAtual / capacidadeMaxima : 0.0,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.blue, // Cor do indicador de progresso
+                          Colors.blue,
                         ),
                         strokeWidth: 10,
                       ),
                       Text(
-                        '$nivelComidaAtual%', // Exibe a porcentagem do nível de comida atual
+                        '${(nivelComidaAtual / capacidadeMaxima * 100).toStringAsFixed(1)}%',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -1388,10 +1513,10 @@ class _telaNivelComidaState extends State<telanivelcomida> {
                   ),
                   SizedBox(height: 20),
                   Text(
-                    'Capacidade Máxima: $capacidadeMaxima%', // Exibe a capacidade máxima do recipiente de comida
+                    'Capacidade Máxima: ${capacidadeMaxima.toStringAsFixed(1)}%',
                     style: TextStyle(
                       fontSize: 18,
-                      color: Colors.white, // Altera a cor do texto para branco
+                      color: Colors.white,
                     ),
                   ),
                 ],
@@ -1405,10 +1530,6 @@ class _telaNivelComidaState extends State<telanivelcomida> {
 }
 
 class _horariosalimentacao extends State<horariosalimentacao> {
-  final int userId;
-
-  _horariosalimentacao({required this.userId});
-
   List<TextEditingController> nameControllers = [];
   List<TimeOfDay?> selectedTimes = [];
 
@@ -1417,7 +1538,7 @@ class _horariosalimentacao extends State<horariosalimentacao> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Horarios de alimentação',
+          'Horários de Alimentação',
           style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.w600,
@@ -1487,7 +1608,7 @@ class _horariosalimentacao extends State<horariosalimentacao> {
                             style: TextStyle(color: Colors.white),
                           ),
                           style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), // Defina a cor de fundo
+                            backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
                           ),
                         ),
                       ],
@@ -1495,26 +1616,33 @@ class _horariosalimentacao extends State<horariosalimentacao> {
                   );
                 },
               ),
-              SizedBox(height: 20), // Adicione um espaçamento após a lista de horários
-              ElevatedButton(
+              SizedBox(height: 20),
+              nameControllers.length < 4 ? ElevatedButton(
                 onPressed: _adicionarHorario,
                 child: Text(
                   'Adicionar Horário',
                   style: TextStyle(color: Colors.white),
                 ),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), // Defina a cor de fundo
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                ),
+              ) : Text(
+                'Limite de 4 horários alcançado',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
                 ),
               ),
-              SizedBox(height: 20), // Adicione um espaçamento após o botão "Adicionar Horário"
+              SizedBox(height: 30),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: _enviarDadosParaFirebase,
                 child: Text(
                   'Enviar',
                   style: TextStyle(color: Colors.white),
                 ),
                 style: ButtonStyle(
-                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue), // Defina a cor de fundo
+                  backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
                 ),
               ),
             ],
@@ -1525,10 +1653,12 @@ class _horariosalimentacao extends State<horariosalimentacao> {
   }
 
   void _adicionarHorario() {
-    setState(() {
-      nameControllers.add(TextEditingController());
-      selectedTimes.add(null);
-    });
+    if (nameControllers.length < 4) {
+      setState(() {
+        nameControllers.add(TextEditingController());
+        selectedTimes.add(null);
+      });
+    }
   }
 
   Future<void> _selectTime(BuildContext context, int index) async {
@@ -1542,6 +1672,94 @@ class _horariosalimentacao extends State<horariosalimentacao> {
         selectedTimes[index] = selectedTime;
       });
     }
+  }
+
+  void _enviarDadosParaFirebase() async {
+    // Validar se todos os campos estão preenchidos
+    if (!_validarCampos()) {
+      // Exibir alerta informando que os campos devem ser preenchidos
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Campos Vazios'),
+            content: Text('Por favor, preencha todos os campos antes de enviar.'),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop(); // Fechar o AlertDialog
+                },
+              ),
+            ],
+          );
+        },
+      );
+      return; // Abortar o envio dos dados
+    }
+
+    // Obter o UID do usuário atual (exemplo de obtenção, depende da autenticação que você está usando)
+    String uid = FirebaseAuth.instance.currentUser!.uid; // Substitua pela lógica de obtenção do UID do usuário
+
+    // Coleção onde os dados serão armazenados
+    CollectionReference horariosCollection = FirebaseFirestore.instance.collection('Horarios');
+
+    // Iterar sobre os controladores e os horários selecionados
+    for (int i = 0; i < nameControllers.length; i++) {
+      String nome = nameControllers[i].text;
+      String hora = selectedTimes[i]?.format(context) ?? '';
+
+      // Criar um mapa dos dados a serem enviados
+      Map<String, dynamic> horarioData = {
+        'nome': nome,
+        'hora': hora,
+        'userId': uid,
+      };
+
+      // Adicionar os dados ao Firestore
+      try {
+        await horariosCollection.add(horarioData);
+        // Limpar os campos após a adição bem-sucedida, se necessário
+        nameControllers[i].clear();
+        setState(() {
+          selectedTimes[i] = null;
+        });
+      } catch (e) {
+        // Tratar erros de forma adequada (por exemplo, mostrando um SnackBar)
+        print('Erro ao enviar horário: $e');
+      }
+    }
+
+    // Mostrar um AlertDialog após a inserção
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Inserido com Sucesso'),
+          content: Text('Os horários foram adicionados.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => menuprincipal(userId: uid)),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool _validarCampos() {
+    for (var controller in nameControllers) {
+      if (controller.text.isEmpty) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
